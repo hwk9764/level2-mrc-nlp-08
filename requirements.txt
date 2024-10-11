@@ -1,5 +1,5 @@
 torch
-datasets
+datasets==2.15.0
 transformers
 transformers[torch]
 tqdm

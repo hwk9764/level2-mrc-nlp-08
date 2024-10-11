@@ -4,6 +4,7 @@ mlruns/
 venv/
 code/
 .idea/
+resources/
 .DS_Store
 *.pdf
 *.jpg
@@ -21,7 +22,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-resources/log/
 build/
 develop-eggs/
 dist/

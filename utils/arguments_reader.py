@@ -84,9 +84,16 @@ class OurTrainingArguments(TrainingArguments):
         default=False,
         metadata={"help": "평가를 실행할지 여부"},
     )
+    seed: int = field(
+        default=104,
+        metadata={
+            "help": "원하는 숫자 하시길"
+            "성능 재현을 위해서는 seed 기억 필요"
+        },
+    )
     # 학습 관련 설정
     num_train_epochs: int = field(
-        default=10,
+        default=1,
         metadata={
             "help": "학습 할 에폭 수"
             "LLM 학습 시 에폭 수를 1~3으로 줄여서 실험 진행 필요"
@@ -100,7 +107,7 @@ class OurTrainingArguments(TrainingArguments):
         },
     )
     per_device_train_batch_size: int = field(
-        default=16,
+        default=32,
         metadata={
             "help": "평가 중 장치당 배치 크기"
         },
@@ -153,6 +160,31 @@ class OurTrainingArguments(TrainingArguments):
             "전체 학습 스텝 수의 2%~5% 정도로 설정하는 것이 일반적"
             "스텝수 = 데이터 개수*에폭수 / 배치사이즈"
         },
+    )
+    # 모델 저장 관련
+    save_strategy: Optional[str] = field(
+        default="epoch",
+        metadata={"help": "모델 학습 중 모델 체크포인트를 저장하는 방식"
+                  "epoch, steps 존재 / steps는 학습 시간이 길 때 사용하면 좋거나 LLM 같은 것을 저장할 때 좋을 것 같음"
+        },
+    )
+    metric_for_best_model: Optional[str] = field(
+        default="exact_match",
+        metadata={"help": "가장 좋은 모델을 평가하기 위한 메트릭 설정"
+                  "본 프로젝트에서는 exact_match / eval_loss를 기본적으로 사용"
+        },
+    )
+    greater_is_better: bool = field(
+        default=True,
+        metadata={
+            "help": "설정한 메트릭에 대해 더 큰 값이 더 좋다 혹은 더 작은 값이 더 좋다 설정"
+            "Accuracy는 True 사용 / eval_loss는 False 사용"
+        },
+    )
+    save_total_limit: int = field(
+        default=1,
+        metadata={
+            "help": "가장 좋은 체크포인트 n개만 저장하여 이전 모델을 덮어씌우도록 설정"},
     )
 
 
