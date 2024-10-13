@@ -2,10 +2,12 @@ torch
 datasets==2.15.0
 transformers
 transformers[torch]
+trl
 tqdm
 pandas
 scikit-learn
 numpy==1.26.4
+
 
 # faiss install (if you want to)
 faiss-gpu

@@ -271,3 +271,84 @@ class ExtracionDataModuleforInference():
                 for ex in self.datasets["validation"]
             ]
             return EvalPrediction(predictions=formatted_predictions, label_ids=references)
+
+
+class generationDataModule():
+    def __init__(self, data_args, training_args, tokenizer) -> NoReturn:
+        self.data_args = data_args
+        self.training_args = training_args
+        self.tokenizer = tokenizer
+        self.datasets = load_from_disk(data_args.dataset_name)
+        if self.training_args.do_train:
+            self.column_names = self.datasets["train"].column_names
+        else:
+            self.column_names = self.datasets["validation"].column_names
+        
+    def _generate_training_prompt(self, instance):
+        prefix_chat_template = '''<|im_start|>system
+        You are Qwen, created by Alibaba Cloud. You are a helpful assistant. 모든 대답은 한국어로 해주세요.<|im_end|>
+        <|im_start|>user
+        question:{} 
+        context:{}<|im_end|>
+        <|im_start|>assistant{}\n
+        '''
+        promt = prefix_chat_template.format(instance['question'], instance['context'], instance['answers'])
+        instance['promt'] = promt
+        return instance
+
+    def _generate_validation_prompt(self, instance):
+        prefix_chat_template = '''<|im_start|>system
+        You are Qwen, created by Alibaba Cloud. You are a helpful assistant. 모든 대답은 한국어로 해주세요.<|im_end|>
+        <|im_start|>user
+        question:{} 
+        context:{}<|im_end|>
+        <|im_start|>assistant\n
+        '''
+        promt = prefix_chat_template.format(instance['question'], instance['context'])
+        instance['promt'] = promt
+        return instance
+    
+    def get_processing_data(self):
+        # dataset에서 train feature를 생성
+        train_dataset = self.datasets["train"]
+        # train_text_column = [self._generate_training_prompt(instance) for instance in train_dataset]
+        # train_dataset = train_dataset.add_column("prompt", train_text_column)
+        train_dataset = train_dataset.shuffle(seed=104)  
+        train_dataset = train_dataset.map(self._generate_training_prompt, 
+                            batched=True,
+                            num_proc=self.data_args.preprocessing_num_workers,
+                            remove_columns=self.column_names,
+                            load_from_cache_file=not self.data_args.overwrite_cache,
+                        )
+        print(train_dataset)
+        exit()
+        # Validation feature 생성
+        eval_dataset = self.datasets["validation"]
+        # eval_text_column = [self._generate_validation_prompt(instance) for instance in eval_dataset]
+        # eval_dataset = eval_dataset.add_column("prompt", eval_text_column)
+        eval_dataset = eval_dataset.map(
+            self._generate_validation_prompt,
+            batched=True,
+            num_proc=self.data_args.preprocessing_num_workers,
+            remove_columns=self.column_names,
+            load_from_cache_file=not self.data_args.overwrite_cache,
+        )
+        
+        return train_dataset, eval_dataset
+
+    def _post_processing_function(self, examples, features, predictions, training_args):
+        print(examples, features)
+        exit()
+        # Metric을 구할 수 있도록 Format을 맞춰줍니다.
+        formatted_predictions = [
+            {"id": k, "prediction_text": v} for k, v in predictions.items()
+        ]
+        
+        if training_args.do_predict:
+            return formatted_predictions
+        elif training_args.do_eval:
+            references = [
+                {"id": ex["id"], "answers": ex[self.answer_column_name]}
+                for ex in self.datasets["validation"]
+            ]
+            return EvalPrediction(predictions=formatted_predictions, label_ids=references)
