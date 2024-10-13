@@ -19,6 +19,15 @@ $ pip install --upgrade pip
 $ pip install -r requirements.txt
 ```
 
+**Step 2.** Sparse embedding + extracion based reader model 실행 방법
+ ```sh
+# 먼저 reader를 학습 / parameter를 변경 하고 싶다면 utils/arguments_reader.py 수정
+$ python train_extraction_reader.py
+
+# 학습이 완료되면 utils/arguments_inference.py의 model_name_or_path를 수정 후 실행
+$ python inference.py
+```
+
 **Optional.** 원격 연결 끊어졌을 때도 돌아갈 수 있도록 Tmux 사용을 권장
 ```sh
 # 새로운 세션 생성
