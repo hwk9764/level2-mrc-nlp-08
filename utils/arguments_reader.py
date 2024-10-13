@@ -4,7 +4,6 @@ from transformers import TrainingArguments, HfArgumentParser
 from dataclasses import dataclass, field
 
 
-
 @dataclass
 class ModelArguments:
     """
@@ -12,7 +11,7 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        default="klue/bert-base",
+        default="monologg/koelectra-base-v3-finetuned-korquad",
         metadata={
             "help": "Path to pretrained model or model identifier from huggingface.co/models"
         },
@@ -25,7 +24,7 @@ class DataTrainingArguments:
     """
 
     dataset_name: Optional[str] = field(
-        default="../data/train_dataset",
+        default="./resources/data/train_dataset",
         metadata={"help": "The name of the dataset to use."},
     )
     overwrite_cache: bool = field(
@@ -73,7 +72,7 @@ class OurTrainingArguments(TrainingArguments):
     
     # 기본 학습 설정
     output_dir: Optional[str] = field(
-        default="./resources/checkpoint/reader/",
+        default="./resources/checkpoint/extraction",
         metadata={"help": "체크포인트와 모델 출력을 저장할 디렉터리 경로"},
     )
     do_train: bool = field(
@@ -81,7 +80,7 @@ class OurTrainingArguments(TrainingArguments):
         metadata={"help": "학습을 실행할지 여부"},
     )
     do_eval: bool = field(
-        default=False,
+        default=True,
         metadata={"help": "평가를 실행할지 여부"},
     )
     seed: int = field(
@@ -93,21 +92,21 @@ class OurTrainingArguments(TrainingArguments):
     )
     # 학습 관련 설정
     num_train_epochs: int = field(
-        default=1,
+        default=10,
         metadata={
             "help": "학습 할 에폭 수"
             "LLM 학습 시 에폭 수를 1~3으로 줄여서 실험 진행 필요"
         },
     )
     per_device_train_batch_size: int = field(
-        default=16,
+        default=32,
         metadata={
             "help": "학습 중 장치당 배치 크기"
             "GPU 메모리에 따라 줄여서 사용 / 너무 큰 배치는 지양"
         },
     )
-    per_device_train_batch_size: int = field(
-        default=32,
+    per_device_eval_batch_size: int = field(
+        default=16,
         metadata={
             "help": "평가 중 장치당 배치 크기"
         },
@@ -161,18 +160,16 @@ class OurTrainingArguments(TrainingArguments):
             "스텝수 = 데이터 개수*에폭수 / 배치사이즈"
         },
     )
-    # 모델 저장 관련
-    save_strategy: Optional[str] = field(
-        default="epoch",
-        metadata={"help": "모델 학습 중 모델 체크포인트를 저장하는 방식"
-                  "epoch, steps 존재 / steps는 학습 시간이 길 때 사용하면 좋거나 LLM 같은 것을 저장할 때 좋을 것 같음"
-        },
-    )
+    # 모델 평가 및 저장 관련
     metric_for_best_model: Optional[str] = field(
         default="exact_match",
         metadata={"help": "가장 좋은 모델을 평가하기 위한 메트릭 설정"
                   "본 프로젝트에서는 exact_match / eval_loss를 기본적으로 사용"
         },
+    )
+    evaluation_strategy: Optional[str] = field(
+        default="epoch",
+        metadata={"help": "epoch이 끝날때마다 평가"},
     )
     greater_is_better: bool = field(
         default=True,
@@ -181,11 +178,21 @@ class OurTrainingArguments(TrainingArguments):
             "Accuracy는 True 사용 / eval_loss는 False 사용"
         },
     )
+    save_strategy: Optional[str] = field(
+        default="epoch",
+        metadata={"help": "모델 학습 중 모델 체크포인트를 저장하는 방식"
+                  "epoch, steps 존재 / steps는 학습 시간이 길 때 사용하면 좋거나 LLM 같은 것을 저장할 때 좋을 것 같음"
+        },
+    )
     save_total_limit: int = field(
         default=1,
         metadata={
             "help": "가장 좋은 체크포인트 n개만 저장하여 이전 모델을 덮어씌우도록 설정"},
     )
+    load_best_model_at_end: bool = field(
+        default=True,
+        metadata={"help": "가장 좋은 모델 로드"},
+    )    
 
 
 if __name__ == "__main__":
@@ -194,4 +201,3 @@ if __name__ == "__main__":
     )
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     print(training_args)
-    exit()
