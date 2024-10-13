@@ -5,6 +5,7 @@ venv/
 code/
 .idea/
 resources/
+utils/log/
 .DS_Store
 *.pdf
 *.jpg
@@ -15,6 +16,7 @@ resources/
 *.pyc
 *.code-workspace
 *.vscode
+*.json
 # *.txt
 
 # Byte-compiled / optimized / DLL files

@@ -11,7 +11,6 @@ from utils.metric_extraction import compute_metrics
 from transformers import HfArgumentParser, set_seed, AutoTokenizer, AutoModelForQuestionAnswering, DataCollatorWithPadding
 from model.qat_custom import QuestionAnsweringTrainer
 
-
 seed = 104
 random.seed(seed) # python random seed 고정
 np.random.seed(seed) # numpy random seed 고정
