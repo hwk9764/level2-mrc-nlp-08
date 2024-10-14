@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     parser = HfArgumentParser(
-        (ModelArguments, DataTrainingArguments, OurTrainingArguments)
+        (ModelArguments, DataTrainingArguments, OurTrainingArguments) # arguement 쭉 읽어보면서 이해하기
     )
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
     # 학습 파라미터 로깅
@@ -46,13 +46,14 @@ def main():
     logger.info(model)
     
     # 데이터 불러오기 및 전처리 data_args, training_args, tokenizer
-    dm = generationDataModule(data_args, training_args, tokenizer)
+    dm = generationDataModule(data_args, training_args, tokenizer) # 이 부분을 많이 고치셔야 할 것
     train_dataset, eval_dataset = dm.get_processing_data()
 
     # Trainer 초기화
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side='right'
     
+    # 여기도 취향 껏 변경
     trainer = SFTTrainer(
         model=model,
         dataset_text_field="prompt",
@@ -60,13 +61,14 @@ def main():
         args=training_args,
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
+        # formatting_func = 'promt' # 사전에 promt를 전처리할 지 / 학습 중 promt를 만들어서 학습할지
         tokenizer=tokenizer,
-        # data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
-        packing= True
-        # post_process_function=dm._post_processing_function,
-        # compute_metrics=compute_metrics,
+        packing= False,
+        data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
+        preprocess_logits_for_metrics=dm._post_processing_function, # metric을 계산하기 위한 후처리
+        compute_metrics=compute_metrics, # metric 계산 코드
     )
-    
+
     # Training
     train_result = trainer.train()
     trainer.save_model()  # Saves the tokenizer too for easy upload
@@ -91,14 +93,14 @@ def main():
         os.path.join(training_args.output_dir, "trainer_state.json")
     )
 
-    # Evaluation
-    logger.info("***** Evaluate *****")
-    metrics = trainer.evaluate()
+    # # Evaluation -> 나중에 구현
+    # logger.info("***** Evaluate *****")
+    # metrics = trainer.evaluate()
 
-    metrics["eval_samples"] = len(eval_dataset)
+    # metrics["eval_samples"] = len(eval_dataset)
 
-    trainer.log_metrics("eval", metrics)
-    trainer.save_metrics("eval", metrics)
+    # trainer.log_metrics("eval", metrics)
+    # trainer.save_metrics("eval", metrics)
 
 
 if __name__ == "__main__":
