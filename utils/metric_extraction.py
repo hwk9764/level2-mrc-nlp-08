@@ -8,9 +8,9 @@ import numpy as np
 from tqdm.auto import tqdm
 from datasets import load_metric
 
-config = json.load(open("./utils/log/logger.json"))
-logging.config.dictConfig(config)
-logger = logging.getLogger(__name__)
+#config = json.load(open("./utils/log/logger.json"))
+#logging.config.dictConfig(config)
+#logger = logging.getLogger(__name__)
 
 metric = load_metric("squad")
 

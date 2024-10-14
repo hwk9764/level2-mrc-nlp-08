@@ -290,9 +290,11 @@ class generationDataModule():
         <|im_start|>user
         question:{} 
         context:{}<|im_end|>
-        <|im_start|>assistant{}\n
-        '''
-        promt = prefix_chat_template.format(instance['question'], instance['context'], instance['answers'])
+        <|im_start|>assistant{}'''
+        question = instance['question']
+        context = instance['context']
+        answers = [answer['text'][0] for answer in instance['answers']]
+        promt = [prefix_chat_template.format(question[i], context[i], answers[i]) for i in range(len(question))]
         instance['promt'] = promt
         return instance
 
@@ -302,10 +304,13 @@ class generationDataModule():
         <|im_start|>user
         question:{} 
         context:{}<|im_end|>
-        <|im_start|>assistant\n
-        '''
-        promt = prefix_chat_template.format(instance['question'], instance['context'])
+        <|im_start|>assistant'''
+        question = instance['question']
+        context = instance['context']
+        answers = [answer['text'][0] for answer in instance['answers']]
+        promt = [prefix_chat_template.format(question[i], context[i]) for i in range(len(question))]
         instance['promt'] = promt
+        instance['answers'] = answers
         return instance
     
     def get_processing_data(self):
@@ -320,8 +325,7 @@ class generationDataModule():
                             remove_columns=self.column_names,
                             load_from_cache_file=not self.data_args.overwrite_cache,
                         )
-        print(train_dataset)
-        exit()
+
         # Validation feature 생성
         eval_dataset = self.datasets["validation"]
         # eval_text_column = [self._generate_validation_prompt(instance) for instance in eval_dataset]
@@ -337,7 +341,9 @@ class generationDataModule():
         return train_dataset, eval_dataset
 
     def _post_processing_function(self, examples, features, predictions, training_args):
+        print('post_process')
         print(examples, features)
+        print(predictions[0])
         exit()
         # Metric을 구할 수 있도록 Format을 맞춰줍니다.
         formatted_predictions = [

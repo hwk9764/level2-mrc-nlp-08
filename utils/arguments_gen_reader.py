@@ -2,6 +2,7 @@ import os
 from typing import Optional
 from transformers import TrainingArguments, HfArgumentParser
 from dataclasses import dataclass, field
+from trl import SFTConfig
 
 
 @dataclass
@@ -24,7 +25,7 @@ class DataTrainingArguments:
     """
 
     dataset_name: Optional[str] = field(
-        default="./resources/data/train_dataset",
+        default="/data/ephemeral/home/hwk_workspace/data/train_dataset",
         metadata={"help": "The name of the dataset to use."},
     )
     overwrite_cache: bool = field(
@@ -35,13 +36,13 @@ class DataTrainingArguments:
         default=os.cpu_count()//2,
         metadata={"help": "The number of processes to use for the preprocessing."},
     )
-    max_seq_length: int = field(
+    '''max_seq_length: int = field(
         default=2000,
         metadata={
             "help": "The maximum total input sequence length after tokenization. Sequences longer "
             "than this will be truncated, sequences shorter will be padded."
         },
-    )
+    )'''
     max_answer_length: int = field(
         default=30,
         metadata={
@@ -51,7 +52,7 @@ class DataTrainingArguments:
     )
     
 @dataclass
-class OurTrainingArguments(TrainingArguments):
+class OurTrainingArguments(SFTConfig):
     """
     HuggingFace의 transformers 라이브러리에서 모델 학습할때 사용되는 하이퍼파라미터 커스텀
     """
@@ -182,7 +183,14 @@ class OurTrainingArguments(TrainingArguments):
     load_best_model_at_end: bool = field(
         default=True,
         metadata={"help": "가장 좋은 모델 로드"},
-    )    
+    )
+    max_seq_length: int = field(
+        default=2000,
+        metadata={
+            "help": "The maximum total input sequence length after tokenization. Sequences longer "
+            "than this will be truncated, sequences shorter will be padded."
+        },
+    )
 
 
 if __name__ == "__main__":
