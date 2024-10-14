@@ -11,7 +11,7 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        default="monologg/koelectra-base-v3-finetuned-korquad",
+        default="monologg/kobigbird-bert-base",
         metadata={
             "help": "Path to pretrained model or model identifier from huggingface.co/models"
         },
@@ -118,7 +118,7 @@ class OurTrainingArguments(TrainingArguments):
             "GPU 자원이 부족할 시 배치를 줄이고 누적 수를 늘려 학습"
         },
     )
-    learning_rate: int = field(
+    learning_rate: float = field(
         default=5e-05,
         metadata={
             "help": "학습률 설정"
@@ -153,7 +153,7 @@ class OurTrainingArguments(TrainingArguments):
         metadata={"help": "학습률 스케줄러 설정"},
     )
     warmup_steps: int = field(
-        default=200,
+        default=90,
         metadata={
             "help": "학습률을 워밍업하기 위한 스텝 수"
             "전체 학습 스텝 수의 2%~5% 정도로 설정하는 것이 일반적"
