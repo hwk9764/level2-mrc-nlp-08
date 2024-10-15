@@ -163,7 +163,7 @@ class OurTrainingArguments(SFTConfig):
             "help": "어떤 step에서 저장할지"},
     )
     eval_steps: int = field(
-        default=2,
+        default=200,
         metadata={
             "help": "어떤 step에서 저장할지"},
     )
