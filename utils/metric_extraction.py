@@ -3,25 +3,12 @@ import json
 import logging
 import os
 from typing import Any, Optional, Tuple
-from transformers import EvalPrediction
 import numpy as np
 from tqdm.auto import tqdm
-from datasets import load_metric
 
-#config = json.load(open("./utils/log/logger.json"))
-#logging.config.dictConfig(config)
-#logger = logging.getLogger(__name__)
-
-metric = load_metric("squad")
-
-
-def compute_metrics(p: EvalPrediction):
-    result = metric.compute(predictions=p.predictions, references=p.label_ids)
-    result['eval_exact_match'] = result['exact_match']
-    del result['exact_match']
-    result['eval_f1'] = result['f1']
-    del result['f1']
-    return result
+config = json.load(open("./utils/log/logger.json"))
+logging.config.dictConfig(config)
+logger = logging.getLogger(__name__)
 
 
 def postprocess_qa_predictions(
