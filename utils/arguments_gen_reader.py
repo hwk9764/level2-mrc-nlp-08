@@ -2,7 +2,7 @@ import os
 from typing import Optional
 from transformers import TrainingArguments, HfArgumentParser
 from dataclasses import dataclass, field
-
+from trl import SFTConfig
 
 @dataclass
 class ModelArguments:
@@ -35,13 +35,13 @@ class DataTrainingArguments:
         default=os.cpu_count()//2,
         metadata={"help": "The number of processes to use for the preprocessing."},
     )
-    max_seq_length: int = field(
+    '''max_seq_length: int = field(
         default=2000,
         metadata={
             "help": "The maximum total input sequence length after tokenization. Sequences longer "
             "than this will be truncated, sequences shorter will be padded."
         },
-    )
+    )'''
     max_answer_length: int = field(
         default=30,
         metadata={
@@ -51,7 +51,7 @@ class DataTrainingArguments:
     )
     
 @dataclass
-class OurTrainingArguments(TrainingArguments):
+class OurTrainingArguments(SFTConfig):
     """
     HuggingFace의 transformers 라이브러리에서 모델 학습할때 사용되는 하이퍼파라미터 커스텀
     """
@@ -85,20 +85,20 @@ class OurTrainingArguments(TrainingArguments):
         },
     )
     per_device_train_batch_size: int = field(
-        default=8,
+        default=1,
         metadata={
             "help": "학습 중 장치당 배치 크기"
             "GPU 메모리에 따라 줄여서 사용 / 너무 큰 배치는 지양"
         },
     )
     per_device_eval_batch_size: int = field(
-        default=8,
+        default=4,
         metadata={
             "help": "평가 중 장치당 배치 크기"
         },
     )
     gradient_accumulation_steps: int = field(
-        default=2,
+        default=8,
         metadata={
             "help": "그래디언트 누적을 위한 스텝 수"
             "GPU 자원이 부족할 시 배치를 줄이고 누적 수를 늘려 학습"
@@ -175,19 +175,25 @@ class OurTrainingArguments(TrainingArguments):
         },
     )
     save_total_limit: int = field(
-        default=1,
+        default=2,
         metadata={
             "help": "가장 좋은 체크포인트 n개만 저장하여 이전 모델을 덮어씌우도록 설정"},
     )
     load_best_model_at_end: bool = field(
         default=True,
         metadata={"help": "가장 좋은 모델 로드"},
-    )    
-
+    )
+    max_seq_length: int = field(
+        default=2000,
+        metadata={
+            "help": "The maximum total input sequence length after tokenization. Sequences longer "
+            "than this will be truncated, sequences shorter will be padded."
+        },
+    )
 
 if __name__ == "__main__":
     parser = HfArgumentParser(
         (ModelArguments, DataTrainingArguments, OurTrainingArguments)
     )
     model_args, data_args, training_args = parser.parse_args_into_dataclasses()
-    print(training_args)
+    print('training_args : ', training_args)
