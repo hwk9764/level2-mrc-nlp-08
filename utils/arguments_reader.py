@@ -23,7 +23,7 @@ class DataTrainingArguments:
     Arguments pertaining to what data we are going to input our model for training and eval.
     """
 
-    dataset_name: Optional[str] = field(
+    dataset_name: Optional[str] = field( #data_args.dataset_name ==> "data/train_dataset"
         default="./resources/data/train_dataset",
         metadata={"help": "The name of the dataset to use."},
     )

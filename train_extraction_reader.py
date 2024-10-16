@@ -6,8 +6,11 @@ import logging
 import logging.config
 import torch
 from utils.arguments_reader import ModelArguments, DataTrainingArguments, OurTrainingArguments
-from utils.data_processing import ExtracionDataModule
+#data_args.dataset_name ==> "data/train_dataset"
+from utils.data_processing import ExtracionDataModule 
+    #def get_processing_data(self): ==> train_dataset, eval_dataset
 from utils.metric_extraction import compute_metrics
+    #f1, em 점수 계산
 from transformers import HfArgumentParser, set_seed, AutoTokenizer, AutoModelForQuestionAnswering, DataCollatorWithPadding
 from model.qat_custom import QuestionAnsweringTrainer
 
@@ -36,19 +39,19 @@ def main():
     set_seed(training_args.seed)
 
     # pretrained model 과 tokenizer를 불러오기
-    tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
-    model = AutoModelForQuestionAnswering.from_pretrained(
+    tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path) 
+    model = AutoModelForQuestionAnswering.from_pretrained( 
         model_args.model_name_or_path,
         from_tf=bool(".ckpt" in model_args.model_name_or_path),
     )
-    logger.info(model)
+    logger.info(model) #모델 구조를 로그에 기록
     
     # 데이터 불러오기 및 전처리 data_args, training_args, tokenizer
-    dm = ExtracionDataModule(data_args, training_args, tokenizer)
+    dm = ExtracionDataModule(data_args, training_args, tokenizer) #데이터 전처리 용
     train_dataset, eval_dataset = dm.get_processing_data()
     # pad_to_max_length가 True이면 이미 max length로 padding된 상태 / 그렇지 않다면 data collator에서 padding을 진행해야 함
     data_collator = DataCollatorWithPadding(
-        tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None
+        tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None #동적 패딩 수행, 패딩을 8의 배수로 설정, 16비트 부동 소수점 형식
     )
 
     # Trainer 초기화
@@ -66,17 +69,18 @@ def main():
     
     # Training
     train_result = trainer.train()
-    trainer.save_model()  # Saves the tokenizer too for easy upload
+    trainer.save_model()  # 학습된 모델 + 토크나이저 저장
 
-    metrics = train_result.metrics
-    metrics["train_samples"] = len(train_dataset)
+    metrics = train_result.metrics #학습 결과의 메트릭 정보 추출
+    metrics["train_samples"] = len(train_dataset) #메트릭 딕셔너리에 학습 샘플의 수 추가
 
-    trainer.log_metrics("train", metrics)
+    trainer.log_metrics("train", metrics) 
     trainer.save_metrics("train", metrics)
     trainer.save_state()
 
     output_train_file = os.path.join(training_args.output_dir, "train_results.txt")
-
+    #학습결과 저장할 파일 경로+이름
+    
     with open(output_train_file, "w") as writer:
         logger.info("***** Train results *****")
         for key, value in sorted(train_result.metrics.items()):

@@ -24,13 +24,13 @@ from transformers.trainer_utils import PredictionOutput
 class QuestionAnsweringTrainer(Trainer):
     def __init__(self, *args, eval_examples=None, post_process_function=None, **kwargs):
         super().__init__(*args, **kwargs)
-        self.eval_examples = eval_examples
-        self.post_process_function = post_process_function
+        self.eval_examples = eval_examples #평가에 사용할 pq쌍
+        self.post_process_function = post_process_function #모델의 원시출력 -> 실제 답변 변환함수
 
-    def evaluate(self, eval_dataset=None, eval_examples=None, ignore_keys=None):
-        eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset
-        eval_dataloader = self.get_eval_dataloader(eval_dataset)
-        eval_examples = self.eval_examples if eval_examples is None else eval_examples
+    def evaluate(self, eval_dataset=None, eval_examples=None, ignore_keys=None): #모델 성능평가
+        eval_dataset = self.eval_dataset if eval_dataset is None else eval_dataset #전처리 후
+        eval_dataloader = self.get_eval_dataloader(eval_dataset) #eval dataset을 배치단위로 제공?
+        eval_examples = self.eval_examples if eval_examples is None else eval_examples #원본
 
         # 일시적으로 metric computation를 불가능하게 한 상태이며, 해당 코드에서는 loop 내에서 metric 계산을 수행합니다.
         compute_metrics = self.compute_metrics
@@ -83,10 +83,12 @@ class QuestionAnsweringTrainer(Trainer):
                 # self.args.prediction_loss_only
                 prediction_loss_only=True if compute_metrics is None else None,
                 ignore_keys=ignore_keys,
+                #compute_metrics 값이 none이면 손실만 계산 / none이 아니면 예측값 같이 계산
             )
         finally:
             self.compute_metrics = compute_metrics
 
+        #post process함수나 메트릭 계산함수가 없으면 output그대로 반환
         if self.post_process_function is None or self.compute_metrics is None:
             return output
 

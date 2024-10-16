@@ -3,22 +3,35 @@ import json
 import logging
 import os
 from typing import Any, Optional, Tuple
+from transformers import EvalPrediction
 import numpy as np
 from tqdm.auto import tqdm
+from datasets import load_metric
 
 config = json.load(open("./utils/log/logger.json"))
 logging.config.dictConfig(config)
 logger = logging.getLogger(__name__)
 
+metric = load_metric("squad")
 
-def postprocess_qa_predictions(
-    examples,
-    features,
-    predictions: Tuple[np.ndarray, np.ndarray],
-    version_2_with_negative: bool = False,
-    n_best_size: int = 20,
-    max_answer_length: int = 30,
-    null_score_diff_threshold: float = 0.0,
+
+def compute_metrics(p: EvalPrediction): #EvalPrediction 구조 | predictions: 모델의 예측값, label_ids: 실제 정답 레이블
+    result = metric.compute(predictions=p.predictions, references=p.label_ids)
+    result['eval_exact_match'] = result['exact_match']
+    del result['exact_match']
+    result['eval_f1'] = result['f1']
+    del result['f1']
+    return result
+
+
+def postprocess_qa_predictions( #모델의 예측(start logits, end logits) ===> 실제 text답변
+    examples, #원본 형태의 데이터(질문, 컨텍스트, 답변)
+    features, #전처리(토큰화)된 데이터셋의 feature (input_ids, attention_mask, token_type_ids)
+    predictions: Tuple[np.ndarray, np.ndarray], # (start_logits, end_logits)
+    version_2_with_negative: bool = False, #정답이 없는 데이터셋이 포함되어있는지 여부
+    n_best_size: int = 20, #답변을 찾을 때 생성할 n-best prediction 총 개수
+    max_answer_length: int = 30,#최대 답변 길이
+    null_score_diff_threshold: float = 0.0, #null 답변(답 존재 안함)을 선택하는 데 사용되는 threshold
     output_dir: Optional[str] = None,
     prefix: Optional[str] = None,
     is_world_process_zero: bool = True,
@@ -58,7 +71,10 @@ def postprocess_qa_predictions(
         len(predictions) == 2
     ), "`predictions` should be a tuple with two elements (start_logits, end_logits)."
     all_start_logits, all_end_logits = predictions
+    #prediction에 두 값(시작, 끝 logit)이 들어왔는지 확인
 
+    #len(predictions[0]) : start logit 개수 / len(feature) : 전처리된 feature개수
+    #두 개가 같아야함
     assert len(predictions[0]) == len(
         features
     ), f"Got {len(predictions[0])} predictions and {len(features)} features."
@@ -70,44 +86,43 @@ def postprocess_qa_predictions(
         features_per_example[example_id_to_index[feature["example_id"]]].append(i)
 
     # prediction, nbest에 해당하는 OrderedDict 생성합니다.
-    all_predictions = collections.OrderedDict()
-    all_nbest_json = collections.OrderedDict()
-    if version_2_with_negative:
+    all_predictions = collections.OrderedDict() #최종 예측
+    all_nbest_json = collections.OrderedDict() # nbest 예측
+    if version_2_with_negative: #답변이 없는 dataset의 경우 점수 차이
         scores_diff_json = collections.OrderedDict()
 
     # Logging.
     logger.setLevel(logging.INFO if is_world_process_zero else logging.WARN)
     logger.info(
         f"Post-processing {len(examples)} example predictions split into {len(features)} features."
-    )
+    ) #후처리할 example, feature 수
 
     # 전체 example들에 대한 main Loop
-    for example_index, example in enumerate(tqdm(examples)):
+    for example_index, example in enumerate(tqdm(examples)): #모든 예제 하나씩
         # 해당하는 현재 example index
-        feature_indices = features_per_example[example_index]
-
+        feature_indices = features_per_example[example_index] #현재 예제의 모든 feature 찾기
         min_null_prediction = None
         prelim_predictions = []
 
-        # 현재 example에 대한 모든 feature 생성합니다.
-        for feature_index in feature_indices:
-            # 각 featureure에 대한 모든 prediction을 가져옵니다.
+        for feature_index in feature_indices: #현재 예제에 대한 하나의 feature에 대해
+            # 각 feature에 대한 모든 prediction을 가져옵니다.
+            #start_logits : 현재 example(질문-문맥 쌍)에서 각 토큰 위치가 답변의 시작일 가능성
             start_logits = all_start_logits[feature_index]
-            end_logits = all_end_logits[feature_index]
+            end_logits = all_end_logits[feature_index] #답변의 시작과 끝 위치 예측값
             # logit과 original context의 logit을 mapping합니다.
-            offset_mapping = features[feature_index]["offset_mapping"]
+            offset_mapping = features[feature_index]["offset_mapping"] #토큰과 원본 텍스트 위치 연결
             # Optional : `token_is_max_context`, 제공되는 경우 현재 기능에서 사용할 수 있는 max context가 없는 answer를 제거합니다
             token_is_max_context = features[feature_index].get(
                 "token_is_max_context", None
             )
 
             # minimum null prediction을 업데이트 합니다.
-            feature_null_score = start_logits[0] + end_logits[0]
+            feature_null_score = start_logits[0] + end_logits[0] #답변이 없다([cls]토큰)로 판단할 때 score 계산
             if (
                 min_null_prediction is None
-                or min_null_prediction["score"] > feature_null_score
+                or min_null_prediction["score"] > feature_null_score #새로 계산된 null score가 기존보다 낮으면 새로 갱신
             ):
-                min_null_prediction = {
+                min_null_prediction = { #null answer에 대한 정보 저장
                     "offsets": (0, 0),
                     "score": feature_null_score,
                     "start_logit": start_logits[0],
@@ -115,12 +130,14 @@ def postprocess_qa_predictions(
                 }
 
             # `n_best_size`보다 큰 start and end logits을 살펴봅니다.
-            start_indexes = np.argsort(start_logits)[
-                -1 : -n_best_size - 1 : -1
-            ].tolist()
-
+            start_indexes = np.argsort(start_logits)[-1 : -n_best_size - 1 : -1].tolist()
+            #만약에 start_logit이 [-1, 2.3, 0.8] ===> [0, 2, 1]반환
+            #n best가 2이면 [1, 2]만 슬라이싱됨
+            #start_logits 정렬했을 때 가장 높은 점수부터 n개만큼 잘라서 그 index값 반환 -> 리스트로 변환
+            
             end_indexes = np.argsort(end_logits)[-1 : -n_best_size - 1 : -1].tolist()
 
+            #선정된 시작 index, 끝 index의 모든 조합에 대해서
             for start_index in start_indexes:
                 for end_index in end_indexes:
                     # out-of-scope answers는 고려하지 않습니다.
@@ -143,6 +160,9 @@ def postprocess_qa_predictions(
                         and not token_is_max_context.get(str(start_index), False)
                     ):
                         continue
+                    
+                    #위에서 안 걸러진 유효한 조합이면 답변을 목록에 추가
+                    #(점수, 시작점수, 끝 점수)
                     prelim_predictions.append(
                         {
                             "offsets": (
@@ -156,11 +176,12 @@ def postprocess_qa_predictions(
                     )
 
         if version_2_with_negative:
+            #만약 '답변이없다'도 답변으로 고려하면
             # minimum null prediction을 추가합니다.
             prelim_predictions.append(min_null_prediction)
             null_score = min_null_prediction["score"]
 
-        # 가장 좋은 `n_best_size` predictions만 유지합니다.
+        # 점수를 정렬해서 가장 좋은 `n_best_size` predictions만 유지합니다.
         predictions = sorted(
             prelim_predictions, key=lambda x: x["score"], reverse=True
         )[:n_best_size]
@@ -171,13 +192,13 @@ def postprocess_qa_predictions(
         ):
             predictions.append(min_null_prediction)
 
-        # offset을 사용하여 original context에서 answer text를 수집합니다.
+        # offset을 사용하여 context에서 실제 텍스트를 반환
         context = example["context"]
         for pred in predictions:
             offsets = pred.pop("offsets")
             pred["text"] = context[offsets[0] : offsets[1]]
 
-        # rare edge case에는 null이 아닌 예측이 하나도 없으며 failure를 피하기 위해 fake prediction을 만듭니다.
+        # rare edge case에는 예측값이 다 null이거나 비어있으면 failure를 피하기 위해 fake prediction("empty")을 만듭니다.
         if len(predictions) == 0 or (
             len(predictions) == 1 and predictions[0]["text"] == ""
         ):
@@ -186,7 +207,8 @@ def postprocess_qa_predictions(
                 0, {"text": "empty", "start_logit": 0.0, "end_logit": 0.0, "score": 0.0}
             )
 
-        # 모든 점수의 소프트맥스를 계산합니다(we do it with numpy to stay independent from torch/tf in this file, using the LogSumExp trick).
+        # 모든 점수의 소프트맥스를 계산합니다(점수==>확률)
+        # #(we do it with numpy to stay independent from torch/tf in this file, using the LogSumExp trick).
         scores = np.array([pred.pop("score") for pred in predictions])
         exp_scores = np.exp(scores - np.max(scores))
         probs = exp_scores / exp_scores.sum()
@@ -196,6 +218,7 @@ def postprocess_qa_predictions(
             pred["probability"] = prob
 
         # best prediction을 선택합니다.
+        #답변없음 포함X면 첫번째 답변 선택
         if not version_2_with_negative:
             all_predictions[example["id"]] = predictions[0]["text"]
         else:
@@ -218,6 +241,7 @@ def postprocess_qa_predictions(
                 all_predictions[example["id"]] = best_non_null_pred["text"]
 
         # np.float를 다시 float로 casting -> `predictions`은 JSON-serializable 가능
+        # 각 질문에 대한 top n 답변 저장
         all_nbest_json[example["id"]] = [
             {
                 k: (
@@ -231,26 +255,30 @@ def postprocess_qa_predictions(
         ]
 
     # output_dir이 있으면 모든 dicts를 저장합니다.
-    if output_dir is not None:
+    if output_dir is not None: #출력 디렉토리가 지정되어 있다면
+        #지정된 디렉토리가 있는지 확인
         assert os.path.isdir(output_dir), f"{output_dir} is not a directory."
-
+        #예측결과 저장할 경로 생성
         prediction_file = os.path.join(
             output_dir,
             "predictions.json" if prefix is None else f"predictions_{prefix}".json,
         )
+        #n-best 저장
         nbest_file = os.path.join(
             output_dir,
             "nbest_predictions.json"
             if prefix is None
             else f"nbest_predictions_{prefix}".json,
         )
+        #'답변없음' 사용하는 경우 저장
         if version_2_with_negative:
             null_odds_file = os.path.join(
                 output_dir,
                 "null_odds.json" if prefix is None else f"null_odds_{prefix}".json,
             )
 
-        logger.info(f"Saving predictions to {prediction_file}.")
+        logger.info(f"Saving predictions to {prediction_file}.") #예측 저장 시작 기록
+        #예측 파일 w모드로 열기
         with open(prediction_file, "w", encoding="utf-8") as writer:
             writer.write(
                 json.dumps(all_predictions, indent=4, ensure_ascii=False) + "\n"
@@ -268,3 +296,7 @@ def postprocess_qa_predictions(
                 )
 
     return all_predictions
+    # {
+    #     "example_id": "예측 결과", 
+    #     ...원본 예제 수만큼...
+    # }
