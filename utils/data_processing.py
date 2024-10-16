@@ -29,11 +29,11 @@ class ExtracionDataModule():
             examples[self.question_column_name if self.pad_on_right else self.context_column_name],
             examples[self.context_column_name if self.pad_on_right else self.question_column_name],
             truncation="only_second" if self.pad_on_right else "only_first",
-            max_length=self.training_args.max_seq_length,
+            max_length=self.data_args.max_seq_length,
             stride=self.data_args.doc_stride,
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
-            # return_token_type_ids=False, # roberta모델을 사용할 경우 False, bert를 사용할 경우 True로 표기해야합니다.
+            return_token_type_ids=False, # roberta모델을 사용할 경우 False, bert를 사용할 경우 True로 표기해야합니다.
             padding="max_length" if self.data_args.pad_to_max_length else False,
         )
         
@@ -129,11 +129,11 @@ class ExtracionDataModule():
             examples[self.question_column_name if self.pad_on_right else self.context_column_name],
             examples[self.context_column_name if self.pad_on_right else self.question_column_name],
             truncation="only_second" if self.pad_on_right else "only_first",
-            max_length=self.training_args.max_seq_length,
+            max_length=self.data_args.max_seq_length,
             stride=self.data_args.doc_stride,
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
-            # return_token_type_ids=False, # roberta모델을 사용할 경우 False, bert를 사용할 경우 True로 표기해야합니다.
+            return_token_type_ids=False, # roberta모델을 사용할 경우 False, bert를 사용할 경우 True로 표기해야합니다.
             padding="max_length" if self.data_args.pad_to_max_length else False,
         )
 
@@ -234,11 +234,11 @@ class ExtracionDataModuleforInference(): #ExtracionDataModule의 valid process�
             examples[self.question_column_name if self.pad_on_right else self.context_column_name],
             examples[self.context_column_name if self.pad_on_right else self.question_column_name],
             truncation="only_second" if self.pad_on_right else "only_first",
-            max_length=self.training_args.max_seq_length,
+            max_length=self.data_args.max_seq_length,
             stride=self.data_args.doc_stride,
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
-            # return_token_type_ids=False, # roberta모델을 사용할 경우 False, bert를 사용할 경우 True로 표기해야합니다.
+            return_token_type_ids=False, # roberta모델을 사용할 경우 False, bert를 사용할 경우 True로 표기해야합니다.
             padding="max_length" if self.data_args.pad_to_max_length else False,
         )
 
