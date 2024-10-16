@@ -2,7 +2,8 @@ from typing import NoReturn
 from datasets import load_from_disk
 from transformers import EvalPrediction
 from utils.metric_extraction import postprocess_qa_predictions
-
+import torch
+from evaluate import load
 
 class ExtracionDataModule():
     def __init__(self, data_args, training_args, tokenizer) -> NoReturn:
@@ -27,7 +28,7 @@ class ExtracionDataModule():
             examples[self.question_column_name if self.pad_on_right else self.context_column_name],
             examples[self.context_column_name if self.pad_on_right else self.question_column_name],
             truncation="only_second" if self.pad_on_right else "only_first",
-            max_length=self.data_args.max_seq_length,
+            max_length=self.training_args.max_seq_length,
             stride=self.data_args.doc_stride,
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
@@ -107,7 +108,7 @@ class ExtracionDataModule():
             examples[self.question_column_name if self.pad_on_right else self.context_column_name],
             examples[self.context_column_name if self.pad_on_right else self.question_column_name],
             truncation="only_second" if self.pad_on_right else "only_first",
-            max_length=self.data_args.max_seq_length,
+            max_length=self.training_args.max_seq_length,
             stride=self.data_args.doc_stride,
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
@@ -205,7 +206,7 @@ class ExtracionDataModuleforInference():
             examples[self.question_column_name if self.pad_on_right else self.context_column_name],
             examples[self.context_column_name if self.pad_on_right else self.question_column_name],
             truncation="only_second" if self.pad_on_right else "only_first",
-            max_length=self.data_args.max_seq_length,
+            max_length=self.training_args.max_seq_length,
             stride=self.data_args.doc_stride,
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
@@ -273,7 +274,7 @@ class ExtracionDataModuleforInference():
             return EvalPrediction(predictions=formatted_predictions, label_ids=references)
 
 
-class generationDataModule():
+class GenerationDataModule():
     def __init__(self, data_args, training_args, tokenizer) -> NoReturn:
         self.data_args = data_args
         self.training_args = training_args
@@ -283,53 +284,54 @@ class generationDataModule():
             self.column_names = self.datasets["train"].column_names
         else:
             self.column_names = self.datasets["validation"].column_names
+        self.metric = load("squad")
         
     def _generate_training_prompt(self, instance):
+        # Qwen prefix
         prefix_chat_template = '''<|im_start|>system
         You are Qwen, created by Alibaba Cloud. You are a helpful assistant. 모든 대답은 한국어로 해주세요.<|im_end|>
         <|im_start|>user
         question:{} 
         context:{}<|im_end|>
-        <|im_start|>assistant{}'''
-        question = instance['question']
-        context = instance['context']
-        answers = [answer['text'][0] for answer in instance['answers']]
-        promt = [prefix_chat_template.format(question[i], context[i], answers[i]) for i in range(len(question))]
-        instance['promt'] = promt
+        <|im_start|>assistant
+        {}<|im_end|>'''
+        questions = instance['question']    # dataset batch에서 question 가져오기
+        contexts = instance['context']  # dataset batch에서 context 가져오기
+        answers = [answer['text'][0] for answer in instance['answers']] # dataset batch에서 answer 가져오기
+        # prefix에 formatting
+        prompts = [prefix_chat_template.format(q, c, a) for q, c, a in zip(questions, contexts, answers)]
+        # 데이터에 prompt 추가
+        instance['prompt'] = prompts
         return instance
 
     def _generate_validation_prompt(self, instance):
+        # Qwen prefix
         prefix_chat_template = '''<|im_start|>system
         You are Qwen, created by Alibaba Cloud. You are a helpful assistant. 모든 대답은 한국어로 해주세요.<|im_end|>
         <|im_start|>user
         question:{} 
-        context:{}<|im_end|>
-        <|im_start|>assistant'''
-        question = instance['question']
-        context = instance['context']
-        answers = [answer['text'][0] for answer in instance['answers']]
-        promt = [prefix_chat_template.format(question[i], context[i]) for i in range(len(question))]
-        instance['promt'] = promt
-        instance['answers'] = answers
+        context:{}<|im_end|>'''
+        question = instance['question'] # dataset batch에서 question 가져오기
+        context = instance['context']   # dataset batch에서 context 가져오기
+        answers = [answer['text'][0] for answer in instance['answers']] # dataset batch에서 answer 가져오기
+        # prefix에 formatting
+        prompt = [prefix_chat_template.format(question[i], context[i]) for i in range(len(question))]
+        instance['prompt'] = prompt
+        instance['answers'] = answers   # answer 추가하여 metric 구할 때 활용
         return instance
     
     def get_processing_data(self):
         # dataset에서 train feature를 생성
         train_dataset = self.datasets["train"]
-        # train_text_column = [self._generate_training_prompt(instance) for instance in train_dataset]
-        # train_dataset = train_dataset.add_column("prompt", train_text_column)
-        train_dataset = train_dataset.shuffle(seed=104)  
+        train_dataset = train_dataset.shuffle(seed=104)
         train_dataset = train_dataset.map(self._generate_training_prompt, 
                             batched=True,
                             num_proc=self.data_args.preprocessing_num_workers,
                             remove_columns=self.column_names,
                             load_from_cache_file=not self.data_args.overwrite_cache,
                         )
-
         # Validation feature 생성
         eval_dataset = self.datasets["validation"]
-        # eval_text_column = [self._generate_validation_prompt(instance) for instance in eval_dataset]
-        # eval_dataset = eval_dataset.add_column("prompt", eval_text_column)
         eval_dataset = eval_dataset.map(
             self._generate_validation_prompt,
             batched=True,
@@ -337,24 +339,31 @@ class generationDataModule():
             remove_columns=self.column_names,
             load_from_cache_file=not self.data_args.overwrite_cache,
         )
-        
         return train_dataset, eval_dataset
 
-    def _post_processing_function(self, examples, features, predictions, training_args):
-        print('post_process')
-        print(examples, features)
-        print(predictions[0])
-        exit()
+    def _post_processing_function(self, predictions, examples):
         # Metric을 구할 수 있도록 Format을 맞춰줍니다.
-        formatted_predictions = [
-            {"id": k, "prediction_text": v} for k, v in predictions.items()
-        ]
+        formatted_predictions = torch.argmax(predictions, axis=-1)
+
+        return formatted_predictions
         
-        if training_args.do_predict:
-            return formatted_predictions
-        elif training_args.do_eval:
-            references = [
-                {"id": ex["id"], "answers": ex[self.answer_column_name]}
-                for ex in self.datasets["validation"]
-            ]
-            return EvalPrediction(predictions=formatted_predictions, label_ids=references)
+    def compute_metrics(self, p: EvalPrediction):
+        predictions, label_ids = p.predictions, p.label_ids
+        # trainer에서 loss 계산을 위해 pad token을 -100으로 해놓았는데 이를 다시 pad token으로 변환
+        # 냅두면 decoding 불가
+        predictions[predictions == -100] = 141643
+        label_ids[label_ids == -100] = 141643
+        # EM을 구하기 위해 text 입력을 해줘야 하여 decoding
+        pred_texts = self.tokenizer.batch_decode(predictions, skip_special_tokens=True)
+        label_texts = self.tokenizer.batch_decode(label_ids, skip_special_tokens=True)
+        # squad metric이 지원하는 형식에 맞추어 줌.
+        # id : question-answer 쌍을 구별하기 위한 id
+        # answer_start : generation에서는 비워두어도 됨.
+        predictions = [{'prediction_text': pred, 'id': str(i)} for i, pred in enumerate(pred_texts)]
+        references = [{'answers': {'answer_start': [], 'text': [label]}, 'id': str(i)} for i, label in enumerate(label_texts)]
+    
+        result = self.metric.compute(predictions=predictions, references=references)
+        return {
+            "exact_match": result["exact_match"],
+            "f1": result["f1"]
+        }
