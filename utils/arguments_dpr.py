@@ -6,7 +6,7 @@ from typing import List
 class OurTrainingArguments:
     # Model Arguments 
     model: str = field(
-        default='klue/bert-base',
+        default='team-lucid/deberta-v3-small-korean',
         metadata={
             'help': 'Path to pretrained model or model identifier from huggingface.co/models'
         },
@@ -51,7 +51,7 @@ class OurTrainingArguments:
         metadata={'help': 'Save directory of question encoder'},
     )
     c_output_path: str = field(
-        default='./resources/dpr/context_encoder',
+        default='./checkpoint/dpr/context_encoder',
         metadata={'help': 'Save directory of context encoder'},
     )
     epochs: int = field(
@@ -61,7 +61,7 @@ class OurTrainingArguments:
         },
     )
     batch_size: int = field(
-        default=64,
+        default=32,
         metadata={
             'help': 'The batch size for training the bi-encoders.'
         },
