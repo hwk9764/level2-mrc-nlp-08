@@ -1,7 +1,9 @@
 # My custom
 lightning_logs/
 mlruns/
+.venv/
 venv/
+.venv_sh/
 code/
 .idea/
 resources/
