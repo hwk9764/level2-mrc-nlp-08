@@ -28,6 +28,16 @@ $ python train_extraction_reader.py
 $ python inference.py
 ```
 
+**Step 3.** Inference 실행 방법
+ ```sh
+# 먼저 sparse/dense 임베딩 벡터 저장
+$ cd/database
+$ python get_embedding_vec.py
+
+# inference 실행
+$ python inference.py
+```
+
 **Optional.** 원격 연결 끊어졌을 때도 돌아갈 수 있도록 Tmux 사용을 권장
 ```sh
 # 새로운 세션 생성
