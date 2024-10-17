@@ -9,14 +9,14 @@ class ModelArguments:
     """
     Arguments pertaining to which model/config/tokenizer we are going to fine-tune from.
     """
-
     model_name_or_path: str = field(
-        default="beomi/Qwen2.5-7B-Instruct-kowiki-qa-context",
+        default="Qwen/Qwen2.5-1.5B-Instruct",
         metadata={
             "help": "Path to pretrained model or model identifier from huggingface.co/models"
         },
     )
-
+    # Qwen/Qwen2.5-1.5B-Instruct
+    # beomi/Qwen2.5-7B-Instruct-kowiki-qa-context
 @dataclass
 class DataTrainingArguments:
     """
@@ -77,7 +77,14 @@ class OurTrainingArguments(SFTConfig):
         },
     )
     # 학습 관련 설정
-    num_train_epochs: int = field(
+    # num_train_epochs: int = field(
+    #     default=3,
+    #     metadata={
+    #         "help": "학습 할 에폭 수"
+    #         "LLM 학습 시 에폭 수를 1~3으로 줄여서 실험 진행 필요"
+    #     },
+    # )
+    max_steps: int = field(
         default=3,
         metadata={
             "help": "학습 할 에폭 수"
@@ -85,14 +92,14 @@ class OurTrainingArguments(SFTConfig):
         },
     )
     per_device_train_batch_size: int = field(
-        default=1,
+        default=2,
         metadata={
             "help": "학습 중 장치당 배치 크기"
             "GPU 메모리에 따라 줄여서 사용 / 너무 큰 배치는 지양"
         },
     )
     per_device_eval_batch_size: int = field(
-        default=4,
+        default=2,
         metadata={
             "help": "평가 중 장치당 배치 크기"
         },
@@ -113,7 +120,7 @@ class OurTrainingArguments(SFTConfig):
     )
     # Optimizer 설정
     optim: str = field(
-        default="adamw_torch",
+        default="paged_adamw_8bit",
         metadata={
             "help": "옵티마이저 설정, 다른 옵티마이저 확인을 위해 아래 url에서 OptimizerNames 확인"
             "https://github.com/huggingface/transformers/blob/main/src/transformers/training_args.py"
@@ -162,8 +169,13 @@ class OurTrainingArguments(SFTConfig):
         metadata={
             "help": "어떤 step에서 저장할지"},
     )
+    # eval_steps: int = field(
+    #     default=200,
+    #     metadata={
+    #         "help": "어떤 step에서 저장할지"},
+    # )
     eval_steps: int = field(
-        default=200,
+        default=1,
         metadata={
             "help": "어떤 step에서 저장할지"},
     )

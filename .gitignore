@@ -5,6 +5,7 @@ mlruns/
 venv/
 .venv_sh/
 code/
+checkpoint/
 .idea/
 resources/
 utils/log/

@@ -17,7 +17,7 @@ from typing import Optional
 #from datasets import DatasetDict, Features, Sequence, Value
 #from utils.arguments_dense import ModelArguments, DataTrainingArguments, RetrieverArguments
 #from utils.dense_dataloader import DPRDataset
-from model.dense_model import BertEncoder
+from model.dpr import BertEncoder
 #from dense_trainer import BiEncoderTrainer
 #import logging
 
