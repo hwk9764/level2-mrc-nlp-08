@@ -6,11 +6,11 @@ import logging
 import logging.config
 import torch
 from utils.arguments_inference import ModelArguments, DataTrainingArguments, OurTrainingArguments
-from utils.data_processing import load_from_disk, ExtracionDataModuleforInference
-from utils.metric_extraction import compute_metrics
+from utils.dataloader_reader import load_from_disk, ExtracionDataModuleforInference
+from utils.metric import compute_metrics
 from transformers import HfArgumentParser, set_seed, AutoTokenizer, AutoModelForQuestionAnswering, DataCollatorWithPadding
 from model.sparse_retrieval import run_sparse_retrieval
-from model.qat_custom import QuestionAnsweringTrainer
+from model.extraction_trainer import QuestionAnsweringTrainer
 
 seed = 104
 random.seed(seed) # python random seed 고정

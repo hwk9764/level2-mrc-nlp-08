@@ -6,10 +6,11 @@ import logging
 import logging.config
 import torch
 from utils.arguments_gen_reader import ModelArguments, DataTrainingArguments, OurTrainingArguments
-from utils.data_processing import GenerationDataModule
+from utils.dataloader_reader import GenerationDataModule
+from model.extraction_trainer import GenerationTrainer
 from transformers import HfArgumentParser, set_seed, AutoTokenizer, AutoModelForCausalLM, DataCollatorForLanguageModeling, BitsAndBytesConfig
-from trl import SFTTrainer
 from peft import get_peft_model, LoraConfig
+from datasets import load_metric
 
 seed = 104
 random.seed(seed) # python random seed 고정
@@ -39,27 +40,32 @@ def main():
 
     # pretrained model 과 tokenizer를 불러오기
     tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
-    quantization_config = BitsAndBytesConfig(load_in_8bit=True)
+    quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_use_double_quant=True,
+            bnb_4bit_compute_dtype=torch.bfloat16
+            # bnb_4bit_compute_dtype=torch.float16
+    )
     model = AutoModelForCausalLM.from_pretrained(
         model_args.model_name_or_path,
         from_tf=bool(".ckpt" in model_args.model_name_or_path),
         quantization_config=quantization_config
     )
-    lora_config = LoraConfig(r=4, lora_dropout=0.1, task_type="CAUSAL_LM")
+    lora_config = LoraConfig(r=8, lora_alpha=16, lora_dropout=0.1, bias="none", task_type="CAUSAL_LM", modules_to_save=None,)
     model = get_peft_model(model, lora_config)
     model.print_trainable_parameters()
     logger.info(model)
     
-    # 데이터 불러오기 및 전처리 data_args, training_args, tokenizer
-    dm = GenerationDataModule(data_args, training_args, tokenizer) # 이 부분을 많이 고치셔야 할 것
+    # 데이터 불러오기 및 전처리
+    dm = GenerationDataModule(data_args, training_args, tokenizer) 
     train_dataset, eval_dataset = dm.get_processing_data()
     # Trainer 초기화
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.padding_side='right'
-    
-    # 여기도 취향 껏 변경
+    metric = load_metric('squad')
     # SFTTrainer는 trainer가 알아서 dataset을 tokenize함
-    trainer = SFTTrainer(
+    trainer = GenerationTrainer(
         model=model,
         dataset_text_field="prompt",
         max_seq_length=training_args.max_seq_length,
@@ -67,12 +73,13 @@ def main():
         train_dataset=train_dataset,
         eval_dataset=eval_dataset,
         peft_config=lora_config,
-        # formatting_func = 'promt' # 사전에 promt를 전처리할 지 / 학습 중 promt를 만들어서 학습할지
         tokenizer=tokenizer,
         packing= training_args.packing,
         data_collator=DataCollatorForLanguageModeling(tokenizer, mlm=False),
-        preprocess_logits_for_metrics=dm._post_processing_function, # metric을 계산하기 위한 후처리
-        compute_metrics=dm.compute_metrics, # metric 계산 코드
+        metrics=metric
+        # preprocess_logits_for_metrics=post_processing_function, # metric을 계산하기 위한 후처리
+        # compute_metrics=compute_metrics, # metric 계산 코드
+        # class 안에 있으니까 굳이 인자로 넣을 필요가 없음
     )
 
     # Training

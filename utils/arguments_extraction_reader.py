@@ -99,7 +99,7 @@ class OurTrainingArguments(TrainingArguments):
         },
     )
     per_device_train_batch_size: int = field(
-        default=32,
+        default=16,
         metadata={
             "help": "학습 중 장치당 배치 크기"
             "GPU 메모리에 따라 줄여서 사용 / 너무 큰 배치는 지양"

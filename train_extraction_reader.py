@@ -5,24 +5,24 @@ import json
 import logging
 import logging.config
 import torch
-from utils.arguments_reader import ModelArguments, DataTrainingArguments, OurTrainingArguments
-#data_args.dataset_name ==> "data/train_dataset"
-from utils.data_processing import ExtracionDataModule 
-    #def get_processing_data(self): ==> train_dataset, eval_dataset
-from utils.metric_extraction import compute_metrics
-    #f1, em 점수 계산
+from utils.arguments_extraction_reader import ModelArguments, DataTrainingArguments, OurTrainingArguments
+from utils.dataloader_reader import ExtracionDataModule 
+from utils.metric import compute_metrics
 from transformers import HfArgumentParser, set_seed, AutoTokenizer, AutoModelForQuestionAnswering, DataCollatorWithPadding
-from model.qat_custom import QuestionAnsweringTrainer
+from model.extraction_trainer import QuestionAnsweringTrainer
+
+logger = logging.getLogger("extraction")
+logger.setLevel(logging.INFO)
+fmt = logging.Formatter('%(asctime)s: [ %(message)s ]','%m/%d/%Y %I:%M:%S %p')
+console = logging.StreamHandler()
+console.setFormatter(fmt)
+logger.addHandler(console)
 
 seed = 104
 random.seed(seed) # python random seed 고정
 np.random.seed(seed) # numpy random seed 고정
 torch.manual_seed(seed) # torch random seed 고정
 torch.cuda.manual_seed_all(seed)
-
-config = json.load(open("./utils/log/logger.json"))
-logging.config.dictConfig(config)
-logger = logging.getLogger(__name__)
 
 
 def main():

@@ -16,10 +16,10 @@ console = logging.StreamHandler()
 console.setFormatter(fmt)
 logger.addHandler(console)
 
-metric = load_metric("squad")
 
 
 def compute_metrics(p: EvalPrediction): #EvalPrediction 구조 | predictions: 모델의 예측값, label_ids: 실제 정답 레이블
+    metric = load_metric("squad")
     result = metric.compute(predictions=p.predictions, references=p.label_ids)
     result['eval_exact_match'] = result['exact_match']
     del result['exact_match']

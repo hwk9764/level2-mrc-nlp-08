@@ -1,9 +1,10 @@
 from typing import NoReturn
 from datasets import load_from_disk
 from transformers import EvalPrediction
-from utils.metric_extraction import postprocess_qa_predictions
+from utils.metric import postprocess_qa_predictions
 import torch
-from evaluate import load
+from datasets import load_metric
+
 
 class ExtracionDataModule():
     def __init__(self, data_args, training_args, tokenizer) -> NoReturn:
@@ -29,7 +30,7 @@ class ExtracionDataModule():
             examples[self.question_column_name if self.pad_on_right else self.context_column_name],
             examples[self.context_column_name if self.pad_on_right else self.question_column_name],
             truncation="only_second" if self.pad_on_right else "only_first",
-            max_length=self.training_args.max_seq_length,
+            max_length=self.data_args.max_seq_length,
             stride=self.data_args.doc_stride,
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
@@ -101,25 +102,6 @@ class ExtracionDataModule():
                     tokenized_examples["end_positions"].append(token_end_index + 1)
 
         return tokenized_examples
-            #     tokenized_examples = {
-            #     "input_ids": [
-            #         [101, ...총 512개 토큰..., 102],
-            #         [101, ...총 512개 토큰..., 102],
-            #         # ... 배치 크기만큼 반복 ...
-            #     ],
-            #     "attention_mask": [
-            #         [1, ...총 512개 0..., 1],
-            #         [1, ...총 512개 0..., 1],
-            #         # ... 배치 크기만큼 반복 ...
-            #     ],
-            #    "token_type_ids": [ ---> bert일때만
-            #             [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, ... 총 512개의 0 또는 1...],
-            #             [0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, ... 총 512개의 0 또는 1...],
-            #           # ... 배치 크기만큼 반복 ...
-            #     ],
-            #     "start_positions": [45, 78, ...],  # 배치 크기만큼의 값
-            #     "end_positions": [52, 93, ...]    # 배치 크기만큼의 값
-            # }
 
     # Validation preprocessing
     def _prepare_validation_features(self, examples): #(test type / example) ==> (token type / tokenized_examples)
@@ -129,7 +111,7 @@ class ExtracionDataModule():
             examples[self.question_column_name if self.pad_on_right else self.context_column_name],
             examples[self.context_column_name if self.pad_on_right else self.question_column_name],
             truncation="only_second" if self.pad_on_right else "only_first",
-            max_length=self.training_args.max_seq_length,
+            max_length=self.data_args.max_seq_length,
             stride=self.data_args.doc_stride,
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
@@ -313,9 +295,8 @@ class GenerationDataModule():
             self.column_names = self.datasets["train"].column_names
         else:
             self.column_names = self.datasets["validation"].column_names
-        self.metric = load("squad")
+        self.metric = load_metric("squad")
         
-
     def _generate_training_prompt(self, instance):
         # Qwen prefix
         prefix_chat_template = '''<|im_start|>system

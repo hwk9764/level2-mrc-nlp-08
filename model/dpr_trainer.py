@@ -6,7 +6,7 @@ import faiss
 import numpy as np
 from dataclasses import dataclass
 from model.dpr import BiEncoder
-from utils.metric_extraction import format_time, get_topk_accuracy
+from utils.metric import format_time, get_topk_accuracy
 from utils.dataloader_dpr import BiEncoderDataset, DataCollator
 from torch.utils.data import DataLoader
 import torch
