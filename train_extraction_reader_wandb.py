@@ -21,15 +21,18 @@ except wandb.errors.AuthError:
     print("Could not log in to Weights & Biases. Please check your credentials.")
     sys.exit(1)
 
+logger = logging.getLogger("extraction")
+logger.setLevel(logging.INFO)
+fmt = logging.Formatter('%(asctime)s: [ %(message)s ]','%m/%d/%Y %I:%M:%S %p')
+console = logging.StreamHandler()
+console.setFormatter(fmt)
+logger.addHandler(console)
+
 seed = 104
 random.seed(seed) # python random seed 고정
 np.random.seed(seed) # numpy random seed 고정
 torch.manual_seed(seed) # torch random seed 고정
 torch.cuda.manual_seed_all(seed)
-
-config = json.load(open("./utils/log/logger.json"))
-logging.config.dictConfig(config)
-logger = logging.getLogger(__name__)
 
 
 def train():
