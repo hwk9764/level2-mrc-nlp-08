@@ -11,12 +11,30 @@ class ModelArguments:
     """
 
     model_name_or_path: str = field(
-        default="./resources/checkpoint/extraction/",
+        default="monologg/kobigbird-bert-base",
         metadata={
             "help": "학습이 완료된 모델 경로를 넣기"
         },
     )
-
+    wiki_data_path: str = field(
+        default="./resources/wiki/remove_duplicates.csv",
+        metadata={
+            "help": "학습이 완료된 모델 경로를 넣기"
+        },
+    )
+    eval_retrieval: str = field(
+        default="sparse",
+        metadata={"help": "sparse, dense, sparse+dense 선택"},
+    )
+    retrieval_method: str = field(
+        default="tfidf",
+        metadata={"help": "tfidf, bm25, 선택"},
+    )
+    tokenizer: str = field(
+        default="monologg/kobigbird-bert-base",
+        metadata={"help": "huggingface 모델명 혹은 kiwi(한국어 형태소 분석기) 선택"},
+    )
+    
 @dataclass
 class DataTrainingArguments:
     """
@@ -62,10 +80,6 @@ class DataTrainingArguments:
             "help": "The maximum length of an answer that can be generated. This is needed because the start "
             "and end predictions are not conditioned on one another."
         },
-    )
-    eval_retrieval: Optional[str] = field(
-        default="sparse",
-        metadata={"help": "sparse, dense, sparse+dense 선택"},
     )
     num_clusters: int = field(
         default=64, metadata={"help": "Define how many clusters to use for faiss."}

@@ -11,7 +11,7 @@ from utils.metric import compute_metrics
 from transformers import HfArgumentParser, set_seed, AutoTokenizer, AutoModelForQuestionAnswering, DataCollatorWithPadding
 from model.extraction_trainer import QuestionAnsweringTrainer
 
-logger = logging.getLogger("extraction")
+logger = logging.getLogger("mrc")
 logger.setLevel(logging.INFO)
 fmt = logging.Formatter('%(asctime)s: [ %(message)s ]','%m/%d/%Y %I:%M:%S %p')
 console = logging.StreamHandler()
@@ -53,7 +53,7 @@ def main():
     data_collator = DataCollatorWithPadding(
         tokenizer, pad_to_multiple_of=8 if training_args.fp16 else None #동적 패딩 수행, 패딩을 8의 배수로 설정, 16비트 부동 소수점 형식
     )
-
+    
     # Trainer 초기화
     trainer = QuestionAnsweringTrainer(
         model=model,

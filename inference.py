@@ -9,18 +9,21 @@ from utils.arguments_inference import ModelArguments, DataTrainingArguments, Our
 from utils.dataloader_reader import load_from_disk, ExtracionDataModuleforInference
 from utils.metric import compute_metrics
 from transformers import HfArgumentParser, set_seed, AutoTokenizer, AutoModelForQuestionAnswering, DataCollatorWithPadding
-from model.sparse_retrieval import run_sparse_retrieval
+from database.retrieval import run_sparse_retrieval
 from model.extraction_trainer import QuestionAnsweringTrainer
+
+logger = logging.getLogger("mrc")
+logger.setLevel(logging.INFO)
+fmt = logging.Formatter('%(asctime)s: [ %(message)s ]','%m/%d/%Y %I:%M:%S %p')
+console = logging.StreamHandler()
+console.setFormatter(fmt)
+logger.addHandler(console)
 
 seed = 104
 random.seed(seed) # python random seed 고정
 np.random.seed(seed) # numpy random seed 고정
 torch.manual_seed(seed) # torch random seed 고정
 torch.cuda.manual_seed_all(seed)
-
-config = json.load(open("./utils/log/logger.json"))
-logging.config.dictConfig(config)
-logger = logging.getLogger(__name__)
 
 
 def main():
@@ -42,18 +45,17 @@ def main():
         model_args.model_name_or_path,
         from_tf=bool(".ckpt" in model_args.model_name_or_path),
     )
-    logger.info(model)
+    # logger.info(model)
     
     datasets = load_from_disk(data_args.dataset_name)
+    logger.info(f"Text dataset size: {datasets}")
     
     # retrieval 방식 선택
-    if data_args.eval_retrieval == 'sparse':
-        datasets = run_sparse_retrieval(
-            tokenizer.tokenize, datasets, training_args, data_args,
-        )
-    elif data_args.eval_retrieval == 'dense':
+    if model_args.eval_retrieval == 'sparse':
+        datasets = run_sparse_retrieval(model_args, data_args, training_args, datasets)
+    elif model_args.eval_retrieval == 'dense':
         NotImplemented
-    elif data_args.eval_retrieval == 'sparse+dense':
+    elif model_args.eval_retrieval == 'sparse+dense':
         NotImplemented
     
     

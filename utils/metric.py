@@ -9,7 +9,7 @@ import numpy as np
 from tqdm.auto import tqdm
 from datasets import load_metric
 
-logger = logging.getLogger("extraction")
+logger = logging.getLogger("mrc")
 logger.setLevel(logging.INFO)
 fmt = logging.Formatter('%(asctime)s: [ %(message)s ]','%m/%d/%Y %I:%M:%S %p')
 console = logging.StreamHandler()

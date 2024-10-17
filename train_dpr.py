@@ -7,7 +7,7 @@ from utils.dataloader_dpr import BiEncoderDataset, DataCollator
 from model.dpr import BiEncoder
 from model.dpr_trainer import BiEncoderTrainer
 
-logger = logging.getLogger("dpr")
+logger = logging.getLogger("mrc")
 logger.setLevel(logging.INFO)
 fmt = logging.Formatter('%(asctime)s: [ %(message)s ]','%m/%d/%Y %I:%M:%S %p')
 console = logging.StreamHandler()

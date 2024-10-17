@@ -216,7 +216,7 @@ class ExtracionDataModuleforInference(): #ExtracionDataModuleÏùò valid processÏô
             examples[self.question_column_name if self.pad_on_right else self.context_column_name],
             examples[self.context_column_name if self.pad_on_right else self.question_column_name],
             truncation="only_second" if self.pad_on_right else "only_first",
-            max_length=self.training_args.max_seq_length,
+            max_length=self.data_args.max_seq_length,
             stride=self.data_args.doc_stride,
             return_overflowing_tokens=True,
             return_offsets_mapping=True,
