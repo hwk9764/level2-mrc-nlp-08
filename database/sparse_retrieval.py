@@ -201,8 +201,6 @@ class SparseRetrieval:
                     }
                     total.append(tmp)
                 cqas = pd.DataFrame(total)
-                print(cqas)
-                exit()
                 return cqas
                 
                 
