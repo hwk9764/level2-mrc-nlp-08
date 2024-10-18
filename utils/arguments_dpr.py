@@ -14,11 +14,11 @@ class OurTrainingArguments:
     # jhgan/ko-sroberta-multitask, team-lucid/deberta-v3-small-korean
     # Data&Tokenizer Arguments
     train_data: str = field(
-        default='./resources/dpr/dpr_trainv1.json',
+        default='./resources/dpr/dpr_train_v2.json',
         metadata={'help': 'The name of the dataset to use.'},
     )
     valid_data: str = field(
-        default='./resources/dpr/dpr_trainv1.json',
+        default='./resources/dpr/dpr_valid_v2.json',
         metadata={'help': 'The name of the validation dataset to use.'},
     )
     max_length: int = field(

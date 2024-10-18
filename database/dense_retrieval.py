@@ -1,104 +1,268 @@
-import json
 import os
-#import pickle
-import sys
-from typing import List, Optional, Tuple, Union
-sys.path.append(os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
-
-import pandas as pd
+import json
+import asyncio
+import pickle
 import torch
-from datasets import Dataset, concatenate_datasets,load_from_disk
-from datasets.arrow_dataset import Dataset
-from torch.utils.data import DataLoader, SequentialSampler, TensorDataset
+import faiss
+import numpy as np
+import pandas as pd
 from tqdm import tqdm
-from transformers import AutoModel, AutoTokenizer, HfArgumentParser, TrainingArguments, set_seed
-
-from typing import Optional
-#from datasets import DatasetDict, Features, Sequence, Value
-#from utils.arguments_dense import ModelArguments, DataTrainingArguments, RetrieverArguments
-#from utils.dense_dataloader import DPRDataset
-from model.dpr import BertEncoder
-#from dense_trainer import BiEncoderTrainer
-#import logging
-
-from typing import Optional
-
-# data_args.use_faiss 값에 따라 FAISS 인덱스 사용 여부 결정
-# FAISS 사용 시:
-# num_clusters와 top_k_retrieval 값으로 검색 설정
-# retrieve_faiss() 메서드로 검색 수행
-# FAISS 미사용 시:
-# retrieve() 메서드로 검색 수행
-# 검색 결과는 df 변수에 데이터프레임 형태로 저장
+from multiprocessing import Pool
+from nltk import sent_tokenize
 
 
-class DenseRetrieval:
-    def __init__(
-        self,
-        context_path: str = "../data/wikipedia_documents.json",
-    ) -> None:
-        with open(context_path, 'r', encoding='utf-8') as f:
-            wiki = json.load(f)
-        self.search_corpus = list(dict.fromkeys([v['text'] for v in wiki.values()]))
-
-    def get_relevant_doc(
-        self,
-        query_vec: torch.Tensor,
-        context_vecs: torch.Tensor,
-        top_k: int = 1
-    ) -> Tuple[List, List]:
-        similarity_scores = torch.matmul(query_vec, context_vecs.t()).squeeze()
-        top_k_scores, top_k_indices = similarity_scores.topk(k=top_k)
-        return top_k_scores.tolist(), top_k_indices.tolist()
-
-    def retrieve(
-        self,
-        query_or_dataset: Union[str, Dataset, TensorDataset],
-        context_vecs: torch.Tensor,
-        tokenizer: AutoTokenizer,
-        q_encoder: BertEncoder,
-        top_k: Optional[int] = 1,
-        device: Optional[str] = 'cuda',
-    ) -> Union[Tuple[List, List], pd.DataFrame]:
+class VectorDatabase(object):
+    
+    def __init__(self, faiss_pickle=None, context_pickle=None):
+        self.text = None
+        self.title = None
+        self.text_index = None
+        self.faiss_index = None
         
-        if isinstance(query_or_dataset, str):
-            input_query = tokenizer(
-                query_or_dataset, padding='max_length', truncation=True, return_tensors='pt'
-            ).to(device)
+        if faiss_pickle:
+            self._load_faiss_pickle(faiss_pickle)
+
+        if context_pickle:
+            self._load_context_pickle(context_pickle)
+        
+    def _load_faiss_pickle(self, faiss_pickle):
+        print('>>> Loading faiss index.')
+        with open(faiss_pickle, 'rb') as file:
+            data = pickle.load(file)
+            self.text_index = data.get('text_index', None)
+            self.faiss_index = data.get('faiss_index', None)
+
+    def _load_context_pickle(self, context_pickle):
+        print('>>> Loading text and title.')
+        with open(context_pickle, 'rb') as file:
+            data = pickle.load(file)
+            self.text = data.get('text', None)
+            self.title = data.get('title', None) 
+        
+    def _chunk_context(self, context, title, num_sents, overlaps):
+        _txt_lst, _title_lst = [], []
+        start, end = 0, num_sents
+        total_sents = sent_tokenize(context)
+        
+        while start < len(total_sents):
+            chunk = total_sents[start:end]
+            _txt_lst.append(' '.join(chunk))
+            _title_lst.append(title)
+            
+            start += (num_sents - overlaps)
+            end = start + num_sents
+
+        return _txt_lst, _title_lst
+    
+    def _load_wikidata_by_chunk(self, wiki_path, num_sent=5, overlap=0, cpu_workers=None, gold_passages=None):
+        print('>>> Loading wiki data.')
+        df = pd.read_csv(wiki_path)
+        print(df)
+        
+        # Store text from test set first.
+        idx_lst, txt_lst, title_lst = [], [], [] 
+        if gold_passages:
+            for ctx in gold_passages:
+                if ctx['idx'] not in idx_lst:
+                    idx_lst.append(ctx['idx'])
+                    txt_lst.append(ctx['text'])
+                    title_lst.append(ctx['title'].replace('_', ' '))
+        
+        print('>>> Parsing and chunking wiki data.')
+        for idx in tqdm(range(len(df))):
+            sample = df.loc[idx]
+            title = sample['title']
+            text = sample['text']
+            _txt_lst, _title_lst = self._chunk_context(text, title, num_sent, overlap)
+            txt_lst.extend(_txt_lst)
+            title_lst.extend(_title_lst)
+            
+        for _idx in range(idx_lst[-1]+1, len(txt_lst)):
+            idx_lst.append(_idx)
+
+        print(f'>>> Total number of passages: ')
+
+        return idx_lst, txt_lst, title_lst
+    
+    # def _process_file(self, file_path):
+    #     with open(file_path, "rt", encoding="utf8") as f:
+    #          input_txt = f.read().strip()
+    #     return input_txt.split("</doc>") 
+
+    # def _process_text(self, arguments):
+    #     txt, num_sent, overlap, test_titles = arguments
+    #     txt = txt.strip()
+    #     if not txt:
+    #         return [], [], 0
+
+    #     lines = txt.split("\n")
+    #     title = lines[0].strip(">").split("title=")[1].strip('"')
+    #     text = " ".join(lines[2:]).strip().replace('()', '').replace('\n', ' ').replace('(, ', '(')
+        
+    #     if len(text.split()) <= 10:
+    #         return [], [], 0
+
+    #     if title in test_titles:
+    #         return [], [], 1
+        
+    #     txt_lst, title_lst = [], []
+    #     start, end = 0, num_sent
+    #     total_sents = sent_tokenize(text)
+
+    #     while start < len(total_sents):
+    #         chunk = total_sents[start:end]
+    #         txt_lst.append(' '.join(chunk))
+    #         title_lst.append(title)
+    #         start += (num_sent - overlap)
+    #         end = start + num_sent
+
+    #     return txt_lst, title_lst, 0
+
+    # def _load_wikidata_by_chunk(self, wiki_path, num_sent=5, overlap=0, cpu_workers=None, gold_passages=None):
+    #     print('>>> Loading wiki data.')
+    
+    #     wiki_subsets = os.listdir(wiki_path)
+    #     wiki_input_txt = []
+    
+    #     if not cpu_workers or cpu_workers < 1:
+    #         cpu_workers = os.cpu_count()
+                
+    #     # Use multiprocessing to read files in parallel
+    #     with Pool(cpu_workers) as pool:
+    #         file_paths = [os.path.join(wiki_path, subset, wiki_file)
+    #                       for subset in wiki_subsets
+    #                       for wiki_file in os.listdir(os.path.join(wiki_path, subset))]
+    #         for result in tqdm(pool.imap_unordered(self._process_file, file_paths), total=len(file_paths)):
+    #             wiki_input_txt.extend(result)
+    
+    #     idx_lst, txt_lst, title_lst = [], [], [] 
+    
+    #     # Store text from test set first.
+    #     if gold_passages:
+    #         for ctx in gold_passages:
+    #             if ctx['idx'] not in idx_lst:
+    #                 idx_lst.append(ctx['idx'])
+    #                 txt_lst.append(ctx['text'])
+    #                 title_lst.append(ctx['title'].replace('_', ' '))
+
+    #     print(len(idx_lst))
+    #     print(max(idx_lst))
+    #     chunk_idx = -1 if len(idx_lst) == 0 else max(idx_lst)
+    #     print(chunk_idx)
+    #     print('>>> Parsing and chunking wiki data.')
+
+    #     # Use multiprocessing to process text chunks in parallel
+    #     tasks = [(txt, num_sent, overlap, title_lst) for txt in wiki_input_txt]
+    #     total_duplicates = 0
+        
+    #     txt_temp, title_temp = [], []        
+    #     with Pool(cpu_workers) as pool:    # chunk_idx_results
+    #         for txt_results, title_results, duplicates in tqdm(pool.imap_unordered(self._process_text, tasks), total=len(tasks)):
+    #             txt_temp.extend(txt_results)
+    #             title_temp.extend(title_results)
+    #             total_duplicates += duplicates 
+
+    #     txt_lst.extend(txt_temp)
+    #     title_lst.extend(title_temp)
+    #     print(len(txt_lst))
+    #     print(len(title_lst))
+    #     print(len(idx_lst))
+    #     if chunk_idx < len(txt_lst):
+    #         for jdx in range(chunk_idx + 1, len(txt_lst)):
+    #             idx_lst.append(jdx)
+    #     print(len(idx_lst))
+    #     print(idx_lst[-5:])
+    #     exit()
+    #     if gold_passages:
+    #         print(f'>>> Deleted {total_duplicates} documents that were duplicates of gold passages.')
+        
+    #     return idx_lst, txt_lst, title_lst
+    
+    def encode_text(self, title, text, embedding_model, tokenizer, pooler=None, max_length=512, batch_size=32, device='cuda'):
+    
+        print('>>> Encoding wiki data.')
+
+        embedding_model = embedding_model.to(device)
+        
+        all_ctx_embed = []
+
+        embedding_model.eval()
+        for start_index in tqdm(range(0, len(text), batch_size)):
+            batch_txt = text[start_index : start_index + batch_size]
+            batch_title = title[start_index : start_index + batch_size]
+                           
+            batch = tokenizer(batch_title,
+                              batch_txt,
+                              padding=True,
+                              truncation=True,
+                              max_length=max_length,)
 
             with torch.no_grad():
-                output_query = q_encoder(**input_query).cpu()
+                output = embedding_model(input_ids=torch.tensor(batch['input_ids']).to(device),
+                                        attention_mask=torch.tensor(batch['attention_mask']).to(device),
+                                        token_type_ids=torch.tensor(batch['token_type_ids']).to(device),)
 
-            doc_scores, doc_indices = self.get_relevant_doc(output_query, context_vecs, top_k=top_k)
-            return (doc_scores, [self.search_corpus[i] for i in doc_indices])
+                attention_mask = torch.tensor(batch['attention_mask']).to(device)
+                
+                if pooler:
+                    pooler_output = pooler(attention_mask, output) 
+                else:
+                    pooler_output = output.last_hidden_state[:,0,:]
+        
+            all_ctx_embed.append(pooler_output.cpu())
 
-        elif isinstance(query_or_dataset, (Dataset, TensorDataset)):
-            total = []
-            with torch.no_grad():
-                q_encoder.eval()
-                for idx, example in enumerate(tqdm(query_or_dataset, desc='Dense passage retrieval')):
-                    if isinstance(query_or_dataset, Dataset):
-                        question = example['question']
-                    else:  # TensorDataset
-                        question = tokenizer.decode(example[0], skip_special_tokens=True)
+        all_ctx_embed = np.vstack(all_ctx_embed) 
+        
+        return all_ctx_embed
+    
+    def build_embedding(self,
+                        wiki_path=None,
+                        save_path=None,
+                        save_context=None,
+                        tokenizer=None,
+                        embedding_model=None,
+                        pooler = None,
+                        num_sent=5,
+                        overlap=0,
+                        cpu_workers=None,
+                        gold_passages=None,
+                        embedding_size=768,
+                        max_length=512,
+                        batch_size=32,
+                        device='cuda',
+                        ):
+        
+        idx_lst, txt_lst, title_lst = self._load_wikidata_by_chunk(wiki_path, num_sent, overlap, cpu_workers, gold_passages)
 
-                    input_query = tokenizer(
-                        question, padding='max_length', truncation=True, return_tensors='pt'
-                    ).to(device)
+        all_embeddings = self.encode_text(title_lst, txt_lst, embedding_model, tokenizer, pooler, max_length, batch_size, device)
+        
+        faiss.normalize_L2(all_embeddings)
+        faiss_index = faiss.IndexFlatIP(embedding_size)
+        faiss_index.add(all_embeddings)
+        
+        print(">>> Saving faiss pickle. It contains \'text_index\' and \'faiss_index\'.")  
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
+        pickle_file_path = os.path.join(save_path, 'faiss_pickle.pkl')
+    
+        with open(pickle_file_path, 'wb') as file:
+            pickle.dump({
+                'text_index': idx_lst,
+                'faiss_index':faiss_index,
+            }, file)
 
-                    output_query = q_encoder(**input_query).cpu()
-                    doc_scores, doc_indices = self.get_relevant_doc(output_query, context_vecs, top_k=top_k)
+        if save_context:
+            print(">>> Saving context pickle. It contains \'title\' and \'text\'.")
+            pickle_file_path = os.path.join(save_path, 'context_pickle.pkl')
+            with open(pickle_file_path, 'wb') as file:
+                pickle.dump({
+                    'title': title_lst,
+                    'text':txt_lst,
+                }, file)
+                    
+        self.text = txt_lst
+        self.title = title_lst
+        self.text_index = idx_lst
+        self.faiss_index = faiss_index
 
-                    tmp = {
-                        'question': question,
-                        'id': example['id'] if isinstance(query_or_dataset, Dataset) else idx,
-                        'context': ' '.join([self.search_corpus[i] for i in doc_indices])
-                    }
-
-                    if isinstance(query_or_dataset, Dataset) and 'context' in example and 'answers' in example:
-                        tmp['original_context'] = example['context']
-                        tmp['answers'] = example['answers']
-
-                    total.append(tmp)
-
-            return pd.DataFrame(total)
+        print(f'>>> Total number of passages: {len(self.text_index)}')
