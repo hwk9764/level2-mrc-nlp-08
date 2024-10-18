@@ -17,7 +17,6 @@ console.setFormatter(fmt)
 logger.addHandler(console)
 
 
-
 def compute_metrics(p: EvalPrediction): #EvalPrediction 구조 | predictions: 모델의 예측값, label_ids: 실제 정답 레이블
     metric = load_metric("squad")
     result = metric.compute(predictions=p.predictions, references=p.label_ids)

@@ -9,6 +9,7 @@ checkpoint/
 .idea/
 resources/
 utils/log/
+database/pickles/
 .DS_Store
 *.pdf
 *.jpg
@@ -21,6 +22,7 @@ utils/log/
 *.vscode
 *.json
 *.bin
+*.pickle
 # *.txt
 
 # Byte-compiled / optimized / DLL files
