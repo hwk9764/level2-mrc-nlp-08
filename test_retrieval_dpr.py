@@ -91,7 +91,7 @@ def main(args):
     
     # Load bm25 model.
     if args.bm25_path:
-        bm25_model = BM25Reranker(bm25_pickle=args.bm25_path)
+        bm25_model = BM25Reranker(tokenizer=tokenizer, bm25_pickle=args.bm25_path)
     else:
         bm25_model = None
 
@@ -126,7 +126,7 @@ def argument_parser():
                         help='Path of faiss pickle'
                        )
     parser.add_argument('--bm25_path', type=str, required=False,
-                        # default='./database/pickles/bm25_pickle.pkl',
+                        default='./database/pickles/bm25_pickle.pkl',
                         help='Path of BM25 Model'
                        )
     parser.add_argument('--faiss_weight', default=1, type=float, 
