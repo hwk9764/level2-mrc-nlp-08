@@ -63,7 +63,7 @@ def search_evaluation(q_encoder, tokenizer, test_dataset, faiss_index, text_inde
             sorted_idx = np.argsort(total_scores[idx])[::-1]
             # D[idx] = D[idx][sorted_idx]
             I[idx] = I[idx][sorted_idx]
-        
+
     scores = get_topk_accuracy(I, answer_idx, text_index)
 
     return scores

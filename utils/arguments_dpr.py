@@ -56,7 +56,7 @@ class OurTrainingArguments:
         metadata={'help': 'Save directory of context encoder'},
     )
     epochs: int = field(
-        default=30,
+        default=15,
         metadata={
             'help': 'The number of training epochs for bi-encoders.'
         },
