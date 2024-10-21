@@ -39,7 +39,7 @@ class DataTrainingArguments:
     )
     
 @dataclass
-class OurTrainingArguments(SFTConfig):
+class OurTrainingArguments(Seq2SeqTrainingArguments):
     """
     HuggingFace의 transformers 라이브러리에서 모델 학습할때 사용되는 하이퍼파라미터 커스텀
     """
