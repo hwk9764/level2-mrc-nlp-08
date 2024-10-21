@@ -6,7 +6,7 @@ import numpy as np
 from utils.dataloader_generation import BARTDataModule
 from utils.arguments_generation_reader import HfArgumentParser, ModelArguments, DataTrainingArguments, OurTrainingArguments
 from model.generation_trainer import BARTTrainer
-from transformers import HfArgumentParser, set_seed, AutoTokenizer, AutoModelForCausalLM, DataCollatorWithPadding, EarlyStoppingCallback
+from transformers import HfArgumentParser, set_seed, AutoTokenizer, AutoModelForSeq2SeqLM, DataCollatorWithPadding, EarlyStoppingCallback
 from utils.metric import compute_generation_metrics
 
 logger = logging.getLogger("gen")
@@ -36,7 +36,7 @@ def main():
     # 모델을 초기화하기 전에 난수를 고정
     set_seed(training_args.seed)
     tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path)
-    model = AutoModelForCausalLM.from_pretrained(model_args.model_name_or_path)
+    model = AutoModelForSeq2SeqLM.from_pretrained(model_args.model_name_or_path)
     
     # Load Dataset
     dm = BARTDataModule(data_args, training_args, tokenizer) 
