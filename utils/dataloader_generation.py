@@ -1,0 +1,170 @@
+from datasets import load_from_disk
+from datasets import load_metric
+from transformers import EvalPrediction
+import numpy as np
+
+
+class BARTDataModule:
+    def __init__(self, data_args, training_args, tokenizer):
+        self.data_args = data_args
+        self.training_args = training_args
+        self.tokenizer = tokenizer
+        #self.datasets = load_from_disk('./resources/data/data_kosquadv1_train_dataset')
+        self.datasets = load_from_disk('./resources/data/train_dataset')
+        if training_args.do_train:
+            self.column_names = self.datasets["train"].column_names
+        else:
+            self.column_names = self.datasets["validation"].column_names
+        self.metric = load_metric("squad")
+    
+    def _prepare_features(self, examples):
+    # truncation과 padding(length가 짧을때만)을 통해 toknization을 진행하며, stride를 이용하여 overflow를 유지합니다.
+    # 각 example들은 이전의 context와 조금씩 겹치게됩니다.
+        labels = [answers['text'][0] for answers in examples['answers']]
+        tokenized_examples = self.tokenizer(
+            text=examples['question'],
+            text_pair=examples['context'],
+            text_target=labels,
+            padding="max_length",
+            truncation="only_second",    # context만 truncate하기
+            max_length=384,
+            stride=128, # 이전 chunk와 overlap되는 부분을 두어 긴 문서를 처리할 때 유용. 모델이 더 나은 임베딩을 하도록 도와 QA에 유용.
+            return_overflowing_tokens=True,
+        )
+
+        del tokenized_examples['token_type_ids']
+        # labels 확장
+        sample_mapping = tokenized_examples.pop("overflow_to_sample_mapping")
+        tokenized_examples["labels"] = [tokenized_examples['labels'][i] for i in sample_mapping]
+
+        return tokenized_examples
+    
+    def get_processing_data(self):
+        train_dataset = self.datasets['train']
+        train_dataset = train_dataset.shuffle(seed=104)
+        train_dataset = train_dataset.map(
+            self._prepare_features,
+            batched=True,
+            num_proc=self.training_args.dataloader_num_workers,
+            remove_columns=train_dataset.column_names,
+            load_from_cache_file=not self.data_args.overwrite_cache)
+
+        val_dataset = self.datasets['validation']
+        val_dataset = val_dataset.map(
+            self._prepare_features,
+            batched=True,
+            num_proc=self.training_args.dataloader_num_workers,
+            remove_columns=val_dataset.column_names,
+            load_from_cache_file=not self.data_args.overwrite_cache)
+        return train_dataset, val_dataset
+    
+    # T5
+    # def postprocess_text(self, preds, labels):
+    #     preds = [pred.strip() for pred in preds]
+    #     labels = [label.strip() for label in labels]
+
+    #     preds = ["\n".join(nltk.sent_tokenize(pred)) for pred in preds]
+    #     labels = ["\n".join(nltk.sent_tokenize(label)) for label in labels]
+
+    #     return preds, labels
+    
+    def _post_process_function(self, features, predictions, training_args):
+        # BART 모델의 출력 처리
+        if isinstance(predictions, tuple):
+            predictions = predictions[0]
+        if isinstance(features, tuple):
+            features = features[0]
+            
+        if predictions.ndim == 3:
+            predictions = np.argmax(predictions, axis=-1)
+        # decoding -> token_ids to text
+
+        preds = self.tokenizer.batch_decode(predictions, skip_special_tokens=True)
+        refs = self.tokenizer.batch_decode(features['labels'], skip_special_tokens=True)
+        
+        #후처리된 예측 ==> {"id"(예제ID), "prediction_text"(예측답변텍스트)} 딕셔너리 리스트
+        #do_predict인 경우 ==> formatted_predictions (inference해야함)
+        #do_eval인 경우 ==>  예측, 정답 함께 반환 (f1, em결과 확인용)
+        if training_args.do_predict:
+            return preds
+        elif training_args.do_eval:
+            return EvalPrediction(predictions=preds, label_ids=refs)
+        
+# Prompt
+QWEN_TEMP = '''<|im_start|>system
+You are Qwen, created by Alibaba Cloud. You are a helpful assistant. 모든 대답은 한국어로 해주세요.<|im_end|>
+<|im_start|>user
+question:{} 
+context:{}<|im_end|>
+<|im_start|>assistant
+{}<|im_end|>'''
+
+EXAONE_TEMP = '''[|system|] You are EXAONE model from LG AI Research, a helpful assistant. [|endofturn|]
+[|user|] Use the following pieces of context to answer the question at the end. If you don't know the answer, just say that "없음", don't try to make up an answer. Please answer in short answer. Keep the answer as concise.
+{}
+Question:{}
+[|assistant|]{}[|endofturn|]'''
+
+class GenerationDataModule():
+    def __init__(self, data_args, training_args, tokenizer):
+        self.data_args = data_args
+        self.training_args = training_args
+        self.tokenizer = tokenizer
+        self.datasets = load_from_disk(data_args.dataset_name)
+        if self.training_args.do_train:
+            self.column_names = self.datasets["train"].column_names
+        else:
+            self.column_names = self.datasets["validation"].column_names
+        # self.metric = load_metric("squad")
+        
+    def _generate_training_prompt(self, instance):
+        questions = instance['question']    # dataset batch에서 question 가져오기
+        contexts = instance['context']  # dataset batch에서 context 가져오기
+        answers = [answer['text'][0] for answer in instance['answers']] # dataset batch에서 answer 가져오기
+        # prefix에 formatting
+        prompts = [EXAONE_TEMP.format(c, q, a) for q, c, a in zip(questions, contexts, answers)]
+        # 데이터에 prompt 추가
+        instance['prompt'] = prompts
+        return instance
+
+    # def _generate_validation_prompt(self, instance):
+    #     # Qwen prefix
+    #     prefix_chat_template = '''<|im_start|>system
+    #     You are Qwen, created by Alibaba Cloud. You are a helpful assistant. 모든 대답은 한국어로 해주세요.<|im_end|>
+    #     <|im_start|>user
+    #     question:{} 
+    #     context:{}<|im_end|>'''
+    #     question = instance['question'] # dataset batch에서 question 가져오기
+    #     context = instance['context']   # dataset batch에서 context 가져오기
+    #     answers = [answer['text'][0] for answer in instance['answers']] # dataset batch에서 answer 가져오기
+    #     # prefix에 formatting
+    #     prompt = [prefix_chat_template.format(question[i], context[i]) for i in range(len(question))]
+    #     instance['prompt'] = prompt
+    #     instance['answers'] = answers   # answer 추가하여 metric 구할 때 활용
+    #     return instance
+    
+    def get_processing_data(self):
+        # dataset에서 train feature를 생성
+        train_dataset = self.datasets["train"]
+        train_dataset = train_dataset.shuffle(seed=104)
+        train_dataset = train_dataset.map(self._generate_training_prompt, 
+                            batched=True,
+                            num_proc=self.data_args.preprocessing_num_workers,
+                            remove_columns=self.column_names
+                        )
+        # # Validation feature 생성
+        # eval_dataset = self.datasets["validation"]
+        # eval_dataset = eval_dataset.map(
+        #     self._generate_validation_prompt,
+        #     batched=True,
+        #     num_proc=self.data_args.preprocessing_num_workers,
+        #     remove_columns=self.column_names
+        # )
+        eval_dataset = self.datasets["validation"]
+        eval_dataset = eval_dataset.map(
+            self._generate_training_prompt,
+            batched=True,
+            num_proc=self.data_args.preprocessing_num_workers,
+            remove_columns=self.column_names
+        )
+        return train_dataset, eval_dataset

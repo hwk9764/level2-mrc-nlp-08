@@ -16,10 +16,34 @@ console = logging.StreamHandler()
 console.setFormatter(fmt)
 logger.addHandler(console)
 
+metric = load_metric("squad")
+
 
 def compute_metrics(p: EvalPrediction): #EvalPrediction 구조 | predictions: 모델의 예측값, label_ids: 실제 정답 레이블
-    metric = load_metric("squad")
     result = metric.compute(predictions=p.predictions, references=p.label_ids)
+    result['eval_exact_match'] = result['exact_match']
+    del result['exact_match']
+    result['eval_f1'] = result['f1']
+    del result['f1']
+    return result
+
+
+def compute_generation_metrics(p: EvalPrediction): #EvalPrediction 구조 | predictions: 모델의 예측값, label_ids: 실제 정답 레이블
+    predictions = p.predictions
+    references = p.label_ids
+    
+    if isinstance(predictions, tuple):
+        predictions = predictions[0]
+    if isinstance(references, tuple):
+        references = references[0]
+    
+    if np.array(predictions).ndim == 3:
+        predictions = np.argmax(predictions, axis=-1)
+
+    predictions = [{'id': str(i), 'prediction_text': pred} for i, pred in enumerate(predictions)]
+    references = [{'answers': {'answer_start': [], 'text': [label]}, 'id': str(i)} for i, label in enumerate(references)]
+
+    result = metric.compute(predictions=predictions, references=references)
     result['eval_exact_match'] = result['exact_match']
     del result['exact_match']
     result['eval_f1'] = result['f1']

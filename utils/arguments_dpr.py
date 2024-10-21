@@ -6,12 +6,12 @@ from typing import List
 class OurTrainingArguments:
     # Model Arguments 
     model: str = field(
-        default='jhgan/ko-sroberta-multitask',
+        default='sentence-transformers/paraphrase-MiniLM-L6-v2',
         metadata={
             'help': 'Path to pretrained model or model identifier from huggingface.co/models'
         },
     )
-    # jhgan/ko-sroberta-multitask, team-lucid/deberta-v3-small-korean
+    # team-lucid/deberta-v3-xlarge-korean, deliciouscat/kf-deberta-base-cross-sts
     # Data&Tokenizer Arguments
     train_data: str = field(
         default='./resources/dpr/dpr_train_v2.json',
@@ -56,13 +56,13 @@ class OurTrainingArguments:
         metadata={'help': 'Save directory of context encoder'},
     )
     epochs: int = field(
-        default=15,
+        default=10,
         metadata={
             'help': 'The number of training epochs for bi-encoders.'
         },
     )
     batch_size: int = field(
-        default=32,
+        default=64,
         metadata={
             'help': 'The batch size for training the bi-encoders.'
         },

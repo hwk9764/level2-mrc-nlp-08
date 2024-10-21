@@ -10,13 +10,14 @@ class ModelArguments:
     Arguments pertaining to which model/config/tokenizer we are going to fine-tune from.
     """
     model_name_or_path: str = field(
-        default="Qwen/Qwen2.5-1.5B-Instruct",
+        default="LGAI-EXAONE/EXAONE-3.0-7.8B-Instruct",
         metadata={
             "help": "Path to pretrained model or model identifier from huggingface.co/models"
         },
     )
     # Qwen/Qwen2.5-1.5B-Instruct
     # beomi/Qwen2.5-7B-Instruct-kowiki-qa-context
+    # LGAI-EXAONE/EXAONE-3.0-7.8B-Instruct
 @dataclass
 class DataTrainingArguments:
     """
@@ -24,7 +25,7 @@ class DataTrainingArguments:
     """
 
     dataset_name: Optional[str] = field(
-        default="./resources/data/train_dataset",
+        default="./resources/data_kosquadv1_train_dataset",
         metadata={"help": "The name of the dataset to use."},
     )
     overwrite_cache: bool = field(
@@ -58,7 +59,7 @@ class OurTrainingArguments(SFTConfig):
     
     # 기본 학습 설정
     output_dir: Optional[str] = field(
-        default="./resources/checkpoint/generation",
+        default="./resources/checkpoint/kosquadv1",
         metadata={"help": "체크포인트와 모델 출력을 저장할 디렉터리 경로"},
     )
     do_train: bool = field(
@@ -77,29 +78,29 @@ class OurTrainingArguments(SFTConfig):
         },
     )
     # 학습 관련 설정
-    # num_train_epochs: int = field(
+    num_train_epochs: int = field(
+        default=1,
+        metadata={
+            "help": "학습 할 에폭 수"
+            "LLM 학습 시 에폭 수를 1~3으로 줄여서 실험 진행 필요"
+        },
+    )
+    # max_steps: int = field(
     #     default=3,
     #     metadata={
     #         "help": "학습 할 에폭 수"
     #         "LLM 학습 시 에폭 수를 1~3으로 줄여서 실험 진행 필요"
     #     },
     # )
-    max_steps: int = field(
-        default=3,
-        metadata={
-            "help": "학습 할 에폭 수"
-            "LLM 학습 시 에폭 수를 1~3으로 줄여서 실험 진행 필요"
-        },
-    )
     per_device_train_batch_size: int = field(
-        default=2,
+        default=1,
         metadata={
             "help": "학습 중 장치당 배치 크기"
             "GPU 메모리에 따라 줄여서 사용 / 너무 큰 배치는 지양"
         },
     )
     per_device_eval_batch_size: int = field(
-        default=2,
+        default=4,
         metadata={
             "help": "평가 중 장치당 배치 크기"
         },
@@ -146,7 +147,7 @@ class OurTrainingArguments(SFTConfig):
         metadata={"help": "학습률 스케줄러 설정"},
     )
     warmup_steps: int = field(
-        default=100,
+        default=200,
         metadata={
             "help": "학습률을 워밍업하기 위한 스텝 수"
             "전체 학습 스텝 수의 2%~5% 정도로 설정하는 것이 일반적"
@@ -155,39 +156,35 @@ class OurTrainingArguments(SFTConfig):
     )
     # 모델 평가 및 저장 관련
     metric_for_best_model: Optional[str] = field(
-        default="exact_match",
+        default="eval_loss",
         metadata={"help": "가장 좋은 모델을 평가하기 위한 메트릭 설정"
                   "본 프로젝트에서는 exact_match / eval_loss를 기본적으로 사용"
         },
     )
-    evaluation_strategy: Optional[str] = field(
-        default="steps",
-        metadata={"help": "epoch이 끝날때마다 평가"},
-    )
-    save_steps: int = field(
-        default=200,
-        metadata={
-            "help": "어떤 step에서 저장할지"},
-    )
-    # eval_steps: int = field(
-    #     default=200,
-    #     metadata={
-    #         "help": "어떤 step에서 저장할지"},
-    # )
-    eval_steps: int = field(
-        default=1,
-        metadata={
-            "help": "어떤 step에서 저장할지"},
-    )
     greater_is_better: bool = field(
-        default=True,
+        default=False,
         metadata={
             "help": "설정한 메트릭에 대해 더 큰 값이 더 좋다 혹은 더 작은 값이 더 좋다 설정"
             "Accuracy는 True 사용 / eval_loss는 False 사용"
         },
     )
+    evaluation_strategy: Optional[str] = field(
+        default="steps",
+        metadata={"help": "epoch/steps이 끝날때마다 평가"},
+    )
+    save_steps: int = field(
+        default=600,
+        metadata={
+            "help": "어떤 step에서 저장할지"},
+    )
+    eval_steps: int = field(
+        default=600,
+        metadata={
+            "help": "어떤 step에서 저장할지"},
+    )
+    logging_steps: int = field(default=200)
     save_total_limit: int = field(
-        default=2,
+        default=1,
         metadata={
             "help": "가장 좋은 체크포인트 n개만 저장하여 이전 모델을 덮어씌우도록 설정"},
     )
