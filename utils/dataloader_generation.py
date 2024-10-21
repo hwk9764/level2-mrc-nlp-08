@@ -9,13 +9,11 @@ class BARTDataModule:
         self.data_args = data_args
         self.training_args = training_args
         self.tokenizer = tokenizer
-        #self.datasets = load_from_disk('./resources/data/data_kosquadv1_train_dataset')
-        self.datasets = load_from_disk('./resources/data/train_dataset')
+        self.datasets = load_from_disk(data_args.dataset_name)
         if training_args.do_train:
             self.column_names = self.datasets["train"].column_names
         else:
             self.column_names = self.datasets["validation"].column_names
-        self.metric = load_metric("squad")
     
     def _prepare_features(self, examples):
     # truncation과 padding(length가 짧을때만)을 통해 toknization을 진행하며, stride를 이용하여 overflow를 유지합니다.
@@ -23,12 +21,12 @@ class BARTDataModule:
         labels = [answers['text'][0] for answers in examples['answers']]
         tokenized_examples = self.tokenizer(
             text=examples['question'],
-            text_pair=examples['context'],
+            text_pair= examples['title'].strip() + examples['context'].strip(),
             text_target=labels,
             padding="max_length",
             truncation="only_second",    # context만 truncate하기
-            max_length=384,
-            stride=128, # 이전 chunk와 overlap되는 부분을 두어 긴 문서를 처리할 때 유용. 모델이 더 나은 임베딩을 하도록 도와 QA에 유용.
+            max_length=self.data_args.max_seq_length,
+            stride=self.data_args.doc_stride, # 이전 chunk와 overlap되는 부분을 두어 긴 문서를 처리할 때 유용. 모델이 더 나은 임베딩을 하도록 도와 QA에 유용.
             return_overflowing_tokens=True,
         )
 

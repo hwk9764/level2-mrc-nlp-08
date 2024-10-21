@@ -2,7 +2,6 @@ import os
 from typing import Optional
 from transformers import HfArgumentParser, Seq2SeqTrainingArguments
 from dataclasses import dataclass, field
-from trl import SFTConfig
 
 
 @dataclass
