@@ -143,7 +143,7 @@ tmux attach -t (session_name)
 
 ### 사용한 데이터셋
 데이터는 train.csv / dev.csv / test.csv의 3개의 파일로 되어있으며 각 파일의 column은 다음과 같이 구성되어있다. <br>
-![Alt text](./markdownimg/data_column.png)  
+![Alt text](https://github.com/user-attachments/assets/edf96554-3ee1-49bf-b0af-a151c79b9da3)  
 
 **title** : context 제목 <br>
 **context** : 문단 <br>
