@@ -11,20 +11,25 @@
 
 ## 1. 프로젝트 소개
 (1) 주제 및 목표
-- 부스트캠프 AI Tech NLP 트랙 level 1 기초 대회
-- 주제 : 문장 간 유사도 측정 (Semantic Text Similarity, STS)    
-      STS 데이터셋을 활용해 두 문장의 유사도를 0 ~ 5 사이의 점수로 예측  <br>
+- 부스트캠프 AI Tech NLP 트랙 level 2 MRC
+- 주제 : ODQA (Open-Domain Question Answering)    
+      ODQA 데이터셋을 활용해 질문에 맞는 정답을 예측  <br>
 
 (2) 평가지표
-- 피어슨 상관 계수(Pearson Correlation Coefficient ,PCC) <br>
+- 주 평가지표 : Exact Match : 모델의 예측과 실제 답이 정확하게 일치할 때만 점수가 주어짐 <br>
+- 참고용 : F1 score : 모델의 예측과 실제 답에 겹치는 부분이 있으면 부분점수가 주어짐 <br>
 
 (3) 개발 환경 <br>
 - GPU : Tesla V100 * 4 <br>
 
 (4) 협업 환경
-- 노션 - 팀 노션 페이지에 해야할 일, 상황 공유    
-- 슬랙 - 허들, DM을 활용해 팀원 간 실시간 소통   
-- 깃허브 - 코드 공유
+|**Tool**|**Description**|
+|:-:|-|
+|**GitHub**|- Task 별 issue 생성<br>- 담당한 issue에 대한 branch 생성 후 PR & main에 merge|
+|**Slack**| - GitHub과 연동해서 레포지토리에 업데이트 되는 내용 실시간으로 확인<br>- 허들을 이용한 회의 및 결과 공유 |
+|**Notion**| - 타임라인 정리<br>- 칸반보드를 이용한 task 관리 |
+|**Zoom**| - 진행상황 공유 |
+|**WandB**| - Sweep을 통한 하이퍼 파라미터 최적화 |
 
 ## 2. 프로젝트 구조
 ```sh
@@ -121,12 +126,12 @@ tmux attach -t (session_name)
 ### 맡은 역할
 |**Member**|**Team**|**Role**|
 |:--|--|--|
-|**김수아**|Data|**EDA**(label 분포 및 문장 길이 분석), **Data Cleanling**|
-|**김현욱**|Data|**EDA**(label 분포 분석), **데이터 증강**(Sentence Swap/Adverb Augmentation/BERT-Mask Insertion)|
-|**송수빈**|Data|**데이터 증강**(Downsampling/Sentence Swap/BERT-Mask Insertion/hanspell)|
-|**김동한**|Model|**Modeling**(Soft Voting Ensemble),**Model Tuning**(snumin44/simcse-ko-roberta-supervised, sorryhyun/sentence-embedding-klue-large)|
-|**김성훈**|Model|**Model Exploration & Training**, **Modeling**(Second-stream with GNN, Contrastive Learning, Soft Voting Ensemble), **Model Tuning**(deliciouscat/kf-deberta-base-cross-sts, snunlp/KR-ELECTRA-discriminator), **코드 모듈화**|
-|**신수환**|Model|**Model Training & Tuning**(RoBERTa, T5, SBERT), **모델 경량화**(Roberta-large with deepspeed), **Modeling**(Clustering)|
+|**김수아**|Model|**EDA**(label 분포 및 문장 길이 분석), **Data Cleanling**|
+|**김현욱**|Data, Model|- **Generation Reader Modeling**(학습 및 추론)<br>- **EDA**(데이터 텍스트 구성 분석)|
+|**송수빈**|Model|**데이터 증강**(Downsampling/Sentence Swap/BERT-Mask Insertion/hanspell)|
+|**김동한**|Data, Model|- **Extraction Reader Modeling**(학습 및 추론)<br>- **Extraction Reader 아키텍처 수정**(CNN Head)<br>- **Sparse Passage Retrieval**(Retrieval 결과 분석)<br>- **EDA**(데이터 토큰 개수 분포 분석)|
+|**김성훈**|Data, Model|**Model Exploration & Training**, **Modeling**(Second-stream with GNN, Contrastive Learning, Soft Voting Ensemble), **Model Tuning**(deliciouscat/kf-deberta-base-cross-sts, snunlp/KR-ELECTRA-discriminator), **코드 모듈화**|
+|**신수환**|Data, Model|**Model Training & Tuning**(RoBERTa, T5, SBERT), **모델 경량화**(Roberta-large with deepspeed), **Modeling**(Clustering)|
 <br>
 
 ## 5. 프로젝트 진행
@@ -141,15 +146,17 @@ tmux attach -t (session_name)
 | **Soft Voting Ensemble** | 증강된 데이터셋으로 학습한 다양한 model의 예측확률을 평균하여 여러 모델의 강점을 결합해 성능 향상 |
 
 
+## 6. 원본 데이터 탐색
 ### 사용한 데이터셋
 데이터는 train_dataset, test_dataset의 2개의 DatasetDict로 되어있으며 각 파일의 구성은 다음과 같다. <br>
-| 분류(디렉토리 명)|세부 분류|샘플 수| 용도|공개여부|
+| 분류(디렉토리 명)|세부 분류|샘플 수|용도|공개여부|
 |:-:|:-:|:-:|:-:|:-:|
-|train_dataset|train|3952|학습용|모든 정보 공개(id, question, context, answers, document_id, title)|
-||validation|240|학습용|모든 정보 공개(id, question, context, answers, document_id, title)|
-|test_dataset|validation|240 (Public)|제출용|id, question 만 공개|
-||-|360 (Private)|제출용|id, question 만 공개| <br>
-![Alt text](https://github.com/user-attachments/assets/edf96554-3ee1-49bf-b0af-a151c79b9da3)  
+|train|train|3,952|학습용|모든 정보 공개(id, question, context, answers, document_id, title)|
+|-|valid|240|학습용|모든 정보 공개(id, question, context, answers, document_id, title)|
+|test|valid|240 (Public)|제출용|id, question 만 공개|
+|-|-|360 (Private)|제출용|id, question 만 공개|
+|Wiki, Doc|corpus|60,613|제출용|모든 정보 공개 (text, corpus_source, url, title, document_id)
+
 
 **title** : context 제목 <br>
 **context** : 문단 <br>
@@ -158,11 +165,24 @@ tmux attach -t (session_name)
 **answers** : {answer_start: 문단 내 시작위치, text: 정답} <br>
 **document_id** : 문단 id <br>
 
-### 데이터 분포
-train data의 경우 label 0.0에 데이터가 쏠린 반면 dev data의 경우 비교적 균등하게 데이터가 분포되어있음을 알 수 있다. <br>
-<img src="./markdownimg/train_dev_state.png" width="600" height="450"/> <br>
-train data의 불균형을 해소하기 위해 label 0.0에 해당하는 데이터 수를 줄이고 여러 증강 기법들을을 활용하였다. <br>
+### 중복 데이터 확인
+- Query-Passage 쌍 데이터 : context 기준, Train 2,761개(1,191↓) / Valid 230개(10↓)
+- Wiki. Doc : 56,737개(3,801↓) <br> <br>
+
+### 토큰 별 분포
+- Query-Passage 쌍 데이터의 Text들에 대한 토큰을 세 종류의 Tokenizer (BPE, SentenecPiece, WordPiece)를 통해 확인
+<img src="https://github.com/user-attachments/assets/4dfd39a3-d18d-483c-b1f4-9fe0fe3ba02f"/>
+- Wiki. Doc 의 Text들에 대한 토큰을 세 종류의 토크나이저 (BPE, SentenecPiece, WordPiece)를 통해 확인
+<img src="https://github.com/user-attachments/assets/eb02949a-6a3b-4668-b1db-2c9e9b434702"/>
+
+- Train, Validation set 모두 최대 1,500 이하이며 비슷한 분포를 가짐
+- Wiki set : boxplot을 통해 outlier가 존재함을 확인 <br><br>
+<img src="https://github.com/user-attachments/assets/a0a0c7e7-6983-4a5d-b73b-2a10779e202d"/> <br>
 <br>
+
+### 데이터 퀄리티 체크
+- 각 데이터셋에서 한글이 아닌 문자(영어, 한자, url, html 태그, 특수문자 등) 개수 파악, text에 한번이라도 포함되면 count <br>
+<img src="https://github.com/user-attachments/assets/27ff50e7-5bc5-495c-8f4f-b2947a39e14c"/>
 
 ### 데이터 증강
 |**Version**|**Abstract**|**num**|
