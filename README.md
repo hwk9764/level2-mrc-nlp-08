@@ -142,7 +142,13 @@ tmux attach -t (session_name)
 
 
 ### 사용한 데이터셋
-데이터는 train.csv / dev.csv / test.csv의 3개의 파일로 되어있으며 각 파일의 column은 다음과 같이 구성되어있다. <br>
+데이터는 train_dataset, test_dataset의 2개의 DatasetDict로 되어있으며 각 파일의 구성은 다음과 같다. <br>
+| 분류(디렉토리 명)|세부 분류|샘플 수| 용도|공개여부|
+|:-:|:-:|:-:|:-:|:-:|
+|train_dataset|train|3952|학습용|모든 정보 공개(id, question, context, answers, document_id, title)|
+||validation|240|학습용|모든 정보 공개(id, question, context, answers, document_id, title)|
+|test_dataset|validation|240 (Public)|제출용|id, question 만 공개|
+||-|360 (Private)|제출용|id, question 만 공개| <br>
 ![Alt text](https://github.com/user-attachments/assets/edf96554-3ee1-49bf-b0af-a151c79b9da3)  
 
 **title** : context 제목 <br>
