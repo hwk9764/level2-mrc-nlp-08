@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/21aa0c80-ea1a-4227-83d5-8a3d09964237)# 🔥 네이버 AI Tech NLP 8조 The AIluminator 🌟
+🔥 네이버 AI Tech NLP 8조 The AIluminator 🌟
 ## Level 2 Project - Open-Domain Question Answering
 
 ## 목차
