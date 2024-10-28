@@ -42,7 +42,7 @@
 |**김수아**|Model|- **Question augmentation**(KoBART)<br>- **Experimentation** (top-k)|
 |**김현욱**|Data, Model|- **Generation Reader Modeling**(학습 및 추론)<br>- **EDA**(데이터 텍스트 퀄리티 분석)|
 |**송수빈**|Model|- **Extraction Reader Modeling**(학습 및 추론)<br>- **Experimentation**(실험 모델 목록 구성 및 결과 정리)<br>- **Logging & HyperParameter Tuning**(Wandb Sweep)<br>- **Ensemble**(앙상블 코드 작성, 모델 선정을 위한 상관관계 분석 코드 작성)|
-|**신수환**|Data, Model|**Model Training & Tuning**(RoBERTa, T5, SBERT), **모델 경량화**(Roberta-large with deepspeed), **Modeling**(Clustering)|
+|**신수환**|Data, Model|**Retrieval Model Modeling**(BM25), **데이터 전처리**(Data Cleaning)|
 <br>
 
 
