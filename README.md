@@ -33,15 +33,15 @@
 |김동한|김성훈|김수아|김현욱|송수빈|신수환|
 |:--:|:--:|:--:|:--:|:--:|:--:|
 |<img src="https://github.com/user-attachments/assets/c7d1807e-ef20-4c82-9a88-bc0eb5a700f4" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/62829d6a-13c9-40dd-807a-116347c1de11" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/5933a9e6-b5b8-41df-b050-c0a89ec19607" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/c90f4226-3bea-41d9-8b28-4d6227c1d254" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/65a7e762-b018-41fc-88f0-45d959c0effa" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/8d806852-764d-499b-a780-018b6cf32b8d" width="100" height="100" />|
-|[Github]()|[Github]()|[Github](https://github.com/tndkkim)|[Github](https://github.com/hwk9764)|[Github](https://github.com/suvinn)|[Github]()| -->|
+|[Github](https://github.com/dongspam0209)|[Github](https://github.com/sunghoon014)|[Github](https://github.com/tndkkim)|[Github](https://github.com/hwk9764)|[Github](https://github.com/suvinn)|[Github](https://github.com/kkobugi)| -->|
 
 |**Member**|**Team**|**Role**|
 |:--|--|--|
-|**김수아**|Model|**EDA**(label 분포 및 문장 길이 분석), **Data Cleanling**|
-|**김현욱**|Data, Model|- **Generation Reader Modeling**(학습 및 추론)<br>- **EDA**(데이터 텍스트 퀄리티 분석)|
-|**송수빈**|Model|- **Extraction Reader Modeling**(학습 및 추론)<br>- **Experimentation**(실험 모델 목록 구성 및 결과 정리)<br>- **Logging & HyperParameter Tuning**(Wandb Sweep)<br>- **Ensemble**(앙상블 코드 작성, 모델 선정을 위한 상관관계 분석 코드 작성)|
 |**김동한**|Data, Model|- **Extraction Reader Modeling**(학습 및 추론)<br>- **Extraction Reader 아키텍처 수정**(CNN Head)<br>- **Sparse Passage Retrieval**(Retrieval 결과 분석)<br>- **EDA**(데이터 토큰 개수 분포 분석)|
 |**김성훈**|Data, Model|**Model Exploration & Training**, **Modeling**(Second-stream with GNN, Contrastive Learning, Soft Voting Ensemble), **Model Tuning**(deliciouscat/kf-deberta-base-cross-sts, snunlp/KR-ELECTRA-discriminator), **코드 모듈화**|
+|**김수아**|Model|- **Question augmentation**(KoBART)<br>- **Experimentation** (top-k)|
+|**김현욱**|Data, Model|- **Generation Reader Modeling**(학습 및 추론)<br>- **EDA**(데이터 텍스트 퀄리티 분석)|
+|**송수빈**|Model|- **Extraction Reader Modeling**(학습 및 추론)<br>- **Experimentation**(실험 모델 목록 구성 및 결과 정리)<br>- **Logging & HyperParameter Tuning**(Wandb Sweep)<br>- **Ensemble**(앙상블 코드 작성, 모델 선정을 위한 상관관계 분석 코드 작성)|
 |**신수환**|Data, Model|**Model Training & Tuning**(RoBERTa, T5, SBERT), **모델 경량화**(Roberta-large with deepspeed), **Modeling**(Clustering)|
 <br>
 
@@ -207,9 +207,7 @@ $ ensemble_v2.ipynb
       <img src="https://github.com/user-attachments/assets/b722741c-2879-49ed-aa75-72d49aadd864"/>
 
 # 4. 리더보드 결과
-Leader Board에서 Pearson을 비교하였을 때 0.105가 올라, 대회에 참여한 16팀 중 가장 많이 순위가 상승하였고 최종 4위를 기록함
-
-**Public Leader Board 순위**
+**Public Leader Board 순위**   
 
 <img src="https://github.com/user-attachments/assets/d2d828ff-e443-4a9a-a111-d8e4b8453cc8"/>
 
