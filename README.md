@@ -39,7 +39,7 @@
 |:--|--|--|
 |**김수아**|Model|**EDA**(label 분포 및 문장 길이 분석), **Data Cleanling**|
 |**김현욱**|Data, Model|- **Generation Reader Modeling**(학습 및 추론)<br>- **EDA**(데이터 텍스트 퀄리티 분석)|
-|**송수빈**|Model|**데이터 증강**(Downsampling/Sentence Swap/BERT-Mask Insertion/hanspell)|
+|**송수빈**|Model|- **Extraction Reader Modeling**(학습 및 추론)<br>- **Experimentation**(실험 모델 목록 구성 및 결과 정리)<br>- **Logging & HyperParameter Tuning**(Wandb Sweep)<br>- **Ensemble**(앙상블 코드 작성, 모델 선정을 위한 상관관계 분석 코드 작성)|
 |**김동한**|Data, Model|- **Extraction Reader Modeling**(학습 및 추론)<br>- **Extraction Reader 아키텍처 수정**(CNN Head)<br>- **Sparse Passage Retrieval**(Retrieval 결과 분석)<br>- **EDA**(데이터 토큰 개수 분포 분석)|
 |**김성훈**|Data, Model|**Model Exploration & Training**, **Modeling**(Second-stream with GNN, Contrastive Learning, Soft Voting Ensemble), **Model Tuning**(deliciouscat/kf-deberta-base-cross-sts, snunlp/KR-ELECTRA-discriminator), **코드 모듈화**|
 |**신수환**|Data, Model|**Model Training & Tuning**(RoBERTa, T5, SBERT), **모델 경량화**(Roberta-large with deepspeed), **Modeling**(Clustering)|
