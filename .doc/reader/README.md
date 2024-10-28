@@ -1,5 +1,9 @@
-# Reader improvement
-## Transfer Learning
+# 🔥 네이버 AI Tech NLP 8조 The AIluminator 🌟
+## Level 2 Project - Open-Domain Question Answering
+
+
+## Reader improvement
+### Transfer Learning
 - **배경**
     - 2009년 ICML에서 발표된 논문의 "Curriculum learning"에 따라 Transfer Learning을 효과적으로 적용하고자 함
 - **Curriculum Learning**
@@ -33,7 +37,7 @@
 
     <img src="https://github.com/user-attachments/assets/197ea107-b49b-45e7-b0ff-aab25ae0dff6"/>
 
-## CNN Layer
+### CNN Layer
 - **배경**
     - 기존 Pre-trained 모델의 출력은 주로 Linear Layer를 거쳐 처리되지만, 이는 인접한 토큰들 간의 연관된 정보를 충분히 학습하기에 부족
     - 삼성 SDS에서 제안한 KorQuAD 1.0 성능 개선 방안1) 에 따르면, 1D Convolution을 추가하면 Kernel Size에 해당하는 인접 토큰들의 임베딩 벡터 간의 연관성을 학습하여 보다 풍부한 문맥 정보를 얻을 수 있다는 것을 확인
@@ -54,7 +58,7 @@
 
     <img src="https://github.com/user-attachments/assets/fdf81d6e-0bd4-4077-8fc6-cb36f77c15e9"/>
 
-## Cleaning
+### Cleaning
 - **배경**
     - 대회에서 주어진 Query-Passage 쌍 데이터의 context가 KQUAD, AI Hub 등 데이터셋에 비해 노이즈가 많이 끼어 있어, 해당 부분에서 노이즈를 줄일 필요성을 느낌
     - 해당 데이터의 context가 증강된 데이터와 유사해질수록, 증강된 데이터로 학습이 더 용이해 질 것이라고 가정
