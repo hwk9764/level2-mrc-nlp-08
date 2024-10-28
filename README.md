@@ -248,7 +248,7 @@ Parameter Tuning <br>
 - **Curriculum Learning**
     - 사람과 유사하게 기계에 Curriculum을 만들어 주어 더 쉬운 데이터부터 학습시키고 차츰 어려운 데이터를 순차적으로 학습시키는 방식을 의미
     - ex) Shape Recognition Task를 학습시킬 때, 쉬운 데이터로 원, 정사각형 등을 학습시키고 어려운 데이터로 타원, 직사각형 등 학습 <br>
-       <img src="https://github.com/user-attachments/assets/36e44c0c-432f-4099-abc6-d2eecab27826"/>
+
 - **오픈 데이터셋 추가**
     -  KoQuAD 1.0 : 한국어 MRC를 위해 만든 데이터셋
         -  해당 데이터셋은 Wikipedia article의 일부 하위 영역에 대한 질문과 답변으로 이루어져 있음
@@ -273,7 +273,8 @@ Parameter Tuning <br>
 
 - **평가**
     - 증강된 데이터를 활용하였을 때, validation에서는 크게 개선되지 않았지만, **F1-score와 Public Score가 많이 향상된 것을 확인**
-<img src="https://github.com/user-attachments/assets/197ea107-b49b-45e7-b0ff-aab25ae0dff6"/>
+
+    <img src="https://github.com/user-attachments/assets/197ea107-b49b-45e7-b0ff-aab25ae0dff6"/>
 
 ### CNN Layer
 - **배경**
@@ -282,16 +283,19 @@ Parameter Tuning <br>
 - **1차원 Convolution**
     - 1D Convolution은 2D Convolution 와 달리 커널의 높이가 임베딩 차원과 같고, 너비만 kernel size로 설정
     - 결과적으로, 시퀀스의 각 위치에서 해당 범위 내 단어들의 정보를 종합한 특징 벡터가 생성
+
       <img src="https://github.com/user-attachments/assets/2d0dc473-19c9-49d3-99eb-a107ed14e974"/> 
 - **CNN Layer 적용 구조**
     - Kernel Size 3과 1을 갖는 Conv 레이어와 Residual Connection을 통해 인접 토큰 간의 연관성 학습과 동시에 모델이 깊어짐에 따른 학습 부담을 완화
+
       <img src="https://github.com/user-attachments/assets/d7016bf4-fc64-48a0-8432-c88a184995d5"/>
 - **평가**
     - kpfbert-korquad-1 : Eval_F1 : 4.66 , Eval_EM : 5.00 상승
     - roberta-large-qa-korquad-v1: Eval_F1 : 2.84 , Eval_EM : 2.9 상승, Public_EM : 7.08, public_F1 : 7.5 감소 
     
     → 학습 성능이 높아졌지만 오버피팅 가능성이 높아짐을 확인
-<img src="https://github.com/user-attachments/assets/fdf81d6e-0bd4-4077-8fc6-cb36f77c15e9"/>
+
+    <img src="https://github.com/user-attachments/assets/fdf81d6e-0bd4-4077-8fc6-cb36f77c15e9"/>
 
 ### Cleaning
 - **배경**
@@ -323,9 +327,9 @@ Parameter Tuning <br>
 
 - **평가**
     - Clean 되기 이전의 데이터를 사용했을 때에 비해 Clean 데이터를 사용하였을 때 모델의 성능이 전반적으로 오른다는 것을 확인
-<img src="https://github.com/user-attachments/assets/ab4f25b9-5571-477e-9aed-bf0234154905"/>
-
-- **결과 분석**
     - Data Aaugmentation 진행한 결과에 따른 4가지 version의 train data와 Model exploration&Modeling을 거쳐 선정된 model에 다양한 조합으로 실험하여 최적의 성능 도출
     - **각 기법마다 best case에 대해서 비교해본 결과 min-max 평균을 취한 case가 가장 높은 92.98의 public pearson 값을 가지는 것을 확인하고 이를 최종 리더보드에 제출**
+
+    <img src="https://github.com/user-attachments/assets/ab4f25b9-5571-477e-9aed-bf0234154905"/>
+
 
