@@ -1,4 +1,4 @@
-# 🔥 네이버 AI Tech NLP 8조 The AIluminator 🌟
+![image](https://github.com/user-attachments/assets/21aa0c80-ea1a-4227-83d5-8a3d09964237)# 🔥 네이버 AI Tech NLP 8조 The AIluminator 🌟
 ## Level 2 Project - Open-Domain Question Answering
 
 ## 목차
@@ -16,8 +16,8 @@
       ODQA 데이터셋을 활용해 질문에 맞는 정답을 예측  <br>
 
 (2) 평가지표
-- 주 평가지표 : Exact Match : 모델의 예측과 실제 답이 정확하게 일치할 때만 점수가 주어짐 <br>
-- 참고용 : F1 score : 모델의 예측과 실제 답에 겹치는 부분이 있으면 부분점수가 주어짐 <br>
+- 주 평가지표 : Exact Match (모델의 예측과 실제 답이 정확하게 일치할 때만 점수가 주어짐) <br>
+- 참고용 : F1 score (모델의 예측과 실제 답에 겹치는 부분이 있으면 부분점수가 주어짐) <br>
 
 (3) 개발 환경 <br>
 - GPU : Tesla V100 * 4 <br>
@@ -95,7 +95,7 @@ $ python inference.py
 ```
 
 **Step 3.** Inference 실행 방법
- ```sh
+``` sh
 # 먼저 sparse/dense 임베딩 벡터 저장
 $ cd/database
 $ python get_embedding_vec.py
@@ -147,12 +147,10 @@ framework 설명<br><br>
 | Task | **Task Description** |
 | --- | --- |
 | **EDA** | 데이터의 특성을 살펴보기 위해 중복 데이터 확인, 토큰 개수 분포, 데이터 퀄리티 체크 등 시각화 및 분석 |
-| **Pre-Processing** | 데이터 클렌징, 키워드 추출 등 데이터 전처리  |
 | **Retrieval** | BM25, DPR Retrieval 기법 구현 및 실험 |
 | **Reader Model Exploration** | Reader Model로 사용하기 적합한 pre-trained model 실험 및 선정 |
 | **Reader Model** | Transfer Learning <br> CNN Head <br> Cleaning|
 | **Post-Processing** | 후처리 <br> 모델 다양성 체크 <br> 앙상블 |
-
 
 
 ## 6. 원본 데이터 탐색
@@ -193,54 +191,23 @@ framework 설명<br><br>
 - 각 데이터셋에서 한글이 아닌 문자(영어, 한자, url, html 태그, 특수문자 등) 개수 파악, text에 한번이라도 포함되면 count <br>
 <img src="https://github.com/user-attachments/assets/27ff50e7-5bc5-495c-8f4f-b2947a39e14c"/>
 
-### 데이터 증강
-|**Version**|**Abstract**|**num**|
-|:--:|--|:--:|
-|**V1_Downsampling**|label 0.0 데이터 1000개 downsampling|8,324|
-|**V2_augmentation_biased**|`AugmentationV1` + `BERT-Token Insertion`|9,994|
-|**V3_augmentation_uniform**|`AugmentationV2` + `Adverb Augmentation` + `Sentence Swap` + `BERT-Token Insertion`|15,541|
-|**V4_augmentation_spellcheck**|`AugmentationV2` + `hanspell` + `Sentence Swap` |17,313|
-
-### 증강 데이터 버전 설명
-|**Version**|**Description**|
-|:--:|--|
-|**V1_Downsampling** |Downsampling된 1000개의 문장으로 V2에서 (4.0, 5.0] label의 data augmentation을 진행할 것이기 때문에, label이 0.0인 데이터셋에서 문장 내 token 수가 3개 이상이면서, K-TACC 증강 방법 중 random_masking_insertion을 진행했을 때 증강이 되는 문장을 선별했습니다. sentence_1과 sentence_2 모두 증강된 index만 고려하면서, sentence_1을 기준으로 유사도가 높은 상위 1000개의 index를 선별했습니다. 문장 간 유사도가 고려되지 못한 sentence_2 데이터셋에 대해서는 추후 data filtering을 거쳤습니다.|
-|**V2_augmentation_biassed**|V1에서 Downsampling된 1000개 데이터셋을 증강한 데이터셋 중에서도 label이 5.0인 데이터셋은 큰 차이가 없어야 한다고 판단하여, 불용어를 제거하면 같은 문장인 데이터를 label 5.0에 할당했습니다. label이 (4.0, 5.0)인 데이터셋은 라벨 간의 비율을 직접 조정하면서, 유사도가 높은 순서대로 개수에 맞게 할당했습니다.|
-|**V3_augmentation_uniform**| label 분포를 균형있게 맞추어 전체적인 데이터 분포를 고르게 하기 위해 **라벨별 증강 비율을 조정**하여 총 3단계에 걸쳐 증강했고 매 단계마다 데이터의 개수가 적은 label들을 집중적으로 증강했습니다. <br> 1단계로 label이 `0.5, 1.5, 1.6, 2.2, 2.4, 2.5, 3.5` 데이터에 대해 Adverb Augmentation 수행했습니다. 2단계로 label이 `0.5, 0.6, 0.8, 1.0, 1.2, 1.4, 1.8, 2.6, 2.8, 3, 3.2, 3.4, 3.5` 데이터에 대해 Sentence Swap 수행하였습니다. 3단계로 `1.5, 2.5, 3.5` 데이터에 대해 random_masking_insertion을 수행하였으며 추가로 `1.5, 2.5` 데이터 중 Masking Insertion한 증강 데이터에 대해 Sentence Swap을 수행했습니다.|
-|**V4_augmentation_spellcheck**|label이 0.0인 데이터셋 중 맞춤법 교정 라이브러리 hanspell이 sentence_1과 sentence_2 모두에 적용된 index 776개를 뽑고, 증강된 데이터셋들을 label 4.8에 493개, label 5.0에 1059개 할당하였습니다. label이 (0.0, 4.4]인 데이터셋은 sentence swapping을 진행하였습니다. V2의 데이터셋 중 500개를 뽑아와 label 4.6에 450개, 4.5에 50개 할당하여 라벨 간 비율이 비숫해지도록 조정하였습니다.|
-
-
+## 7. Modeling
 ### Model Exploration
-한국어 데이터셋에 적합한 pre-trained model을 탐색하기 위해 대회에서 준 데이터를 가공하지 않고 그대로 사용하여 성능을 평가하고, 이를 base 모델로 하여 STS 성능을 극대화하는 방향으로 진행
+- 베이스라인으로 주어진 코드를 기반으로 HuggingFace의 model 허브에서 “question answering”으로 필터링한 후 Klue로 사전학습 되지 않은 모델에 대해 기초 성능 평가를 진행. <br>
+Reader : Query-Passage 쌍 데이터로 학습 한 Extraction based Reader
+<img src="https://github.com/user-attachments/assets/6c82984b-76b0-4e02-964a-6e3b67cc977c"/>
 
-Hugging Face의 모델 허브에서 `semantic text similarity` tag로 필터링한 후 Transformer 기반의 한국어 모델들(e.g. simcse-ko-bert, klue-roberta, kf-deberta, …) 에 대해 성능 평가 진행
 
-서버의 HW 환경을 고려한 효율적인 학습 및 추론을 위해 LLM보다 가벼운 Encoder 기반 모델 선정
 
-| Model | Valid Pearson | Public Pearson |
-| --- | --- | --- |
-| jhgan/ko-sbert-sts | 0.882 | 0.872 |
-| snumin44/simcse-ko-bert-supervised | 0.880 | 0.880|
-| upskyy/kf-deberta-multitask | 0.920 | 0.909 |
-| deliciouscat/kf-deberta-base-cross-sts | 0.929 | **0.911** |
-| sorryhyun/sentence-embedding-klue-large | 0.912 | **0.910** |
-| ddobokki/klue-roberta-small-nli-sts | 0.881 | 0.867 |
-
-### Second-stream with GNN
-**모델링 설명**
-- STS(Semantic Textual Similarity) 문제에서 단어 사이의 유사도는 중요한 factor라는 가설을 세워 실험을 진행
-- (1) Model Exploration을 통해 탐색된 Transformer 기반의 모델을 통해 입력으로 들어가는 문장의 context representation을 학습하고, (2) GCN을 통해 단어들 간의 유사도로 구축된 Graph representation을 학습
-- 두가지의 representation을 dot product 하고 나오는 representation을 MLP 레이어의 input으로 사용하여 문장 쌍에 대한 0~5점 사이의 유사도를 예측
-
-**결과 분석**
-- 정량적 평가 : 제안하는 모델이 기존 backbone의 성능보다 더 좋은 것을 확인하였으나, 모델 학습의 cost가 커지는 것 대비 성능의 차이가 미미한 것으로 판단됨
-- 정성적 평가 : 실제 데이터 예측 결과를 확인해본 결과 `주택가`와 `주거지역`이라는 유사한 단어가 존재하는 경우 반영하여 더 높은 점수를 부여하는 것을 확인
-- 사전 그래프 구축 작업의 정교함에 따라 성능의 폭이 커질 것으로 예상되어 마지막 제출 전 시간이 남으면 진행할 것으로 결론냄
-
-| Model | Validation Pearson | Public Pearson |
-| --- | --- | --- |
-| deliciouscat/kf-deberta-base-cross-sts | 0.926 | 0.9110 |
-| deliciouscat/kf-deberta-base-cross-sts + GNN | 0.929 | 0.9164 |
+### Model Tuning
+Retrieval Tuning : TF-IDF <br>
+- Retrieval 단계에서 가져오는 문서의 개수(k)가 모델이 정답을 맞출 확률을 높이는 데 미치는 영향을 분석
+<img src="https://github.com/user-attachments/assets/6c82984b-76b0-4e02-964a-6e3b67cc977c"/>
+<br>
+Parameter Tuning <br>
+- 과적합을 방지하기 위해 Loss function에 L2 penalty를 좀 더 많이 적용
+- 적절한 답변의 길이를 찾기
+<img src="https://github.com/user-attachments/assets/ead0a1f5-0945-4a4b-a361-6c6e626ca63f"/>
 
 ### Contrastive Learning
 **모델링 설명**
