@@ -141,7 +141,7 @@ $ tmux kill-session -t (session_name)
 <br>
 
 ## 5. 프로젝트 진행
-<img src="https://github.com/user-attachments/assets/e58b3a6d-2072-4715-9ad4-cb61adffc43a"/>
+<img src="https://github.com/user-attachments/assets/daf4c4ea-2463-426c-9964-939b5c793937"/>
 framework 설명<br><br>
 
 | Task | **Task Description** |
