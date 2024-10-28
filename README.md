@@ -178,12 +178,13 @@ framework 설명<br><br>
 
 ### 토큰 별 분포
 - Query-Passage 쌍 데이터의 Text들에 대한 토큰을 세 종류의 Tokenizer (BPE, SentenecPiece, WordPiece)를 통해 확인
-<img src="https://github.com/user-attachments/assets/4dfd39a3-d18d-483c-b1f4-9fe0fe3ba02f"/>
+<img src="https://github.com/user-attachments/assets/4dfd39a3-d18d-483c-b1f4-9fe0fe3ba02f"/> <br>
+
 - Wiki. Doc 의 Text들에 대한 토큰을 세 종류의 토크나이저 (BPE, SentenecPiece, WordPiece)를 통해 확인
-<img src="https://github.com/user-attachments/assets/eb02949a-6a3b-4668-b1db-2c9e9b434702"/>
+<img src="https://github.com/user-attachments/assets/eb02949a-6a3b-4668-b1db-2c9e9b434702"/> <br>
 
 - Train, Validation set 모두 최대 1,500 이하이며 비슷한 분포를 가짐
-- Wiki set : boxplot을 통해 outlier가 존재함을 확인 <br><br>
+- Wiki set : boxplot을 통해 outlier가 존재함을 확인
 <img src="https://github.com/user-attachments/assets/a0a0c7e7-6983-4a5d-b73b-2a10779e202d"/> <br>
 <br>
 
