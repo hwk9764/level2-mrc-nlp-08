@@ -141,15 +141,18 @@ $ tmux kill-session -t (session_name)
 <br>
 
 ## 5. 프로젝트 진행
+<img src="https://github.com/user-attachments/assets/e58b3a6d-2072-4715-9ad4-cb61adffc43a"/>
+framework 설명<br><br>
+
 | Task | **Task Description** |
 | --- | --- |
-| **EDA** | 데이터의 특성을 살펴보기 위해 label별 분포 등 시각화 및 분석 |
-| **Augmentation** | 데이터셋의 불균형성을 해소하기 위해 다양한 방법으로 데이터 증강 수행 |
-| **Model Exploration** | 데이터셋과 STS  task를 수행하기 적합한 pre-trained model 선정 |
-| Second-stream with GNN | 단어들 사이의 유의어 관계를 모델링하기 위해 Graph Neural Networks (GNN)을 second-stream으로 NLP 모델에 통합하고 성능 평가 / 최종 제출 때는 사용 x |
-| **Contrastive Learning** |  STS Task에서 SOTA의 성능을 달성했던 Contrastive Learning을 본 프로젝트에 적용하여 성능 평가 |
-| Clustering | 문장 사이의 코사인 유사도를 바탕으로 라벨관의 상관관계를 탐구하여 모델에의 활용 방안 및 전처리 방법 고안 / 최종 제출 때는 사용 x|
-| **Soft Voting Ensemble** | 증강된 데이터셋으로 학습한 다양한 model의 예측확률을 평균하여 여러 모델의 강점을 결합해 성능 향상 |
+| **EDA** | 데이터의 특성을 살펴보기 위해 중복 데이터 확인, 토큰 개수 분포, 데이터 퀄리티 체크 등 시각화 및 분석 |
+| **Pre-Processing** | 데이터 클렌징, 키워드 추출 등 데이터 전처리  |
+| **Retrieval** | BM25, DPR Retrieval 기법 구현 및 실험 |
+| **Reader Model Exploration** | Reader Model로 사용하기 적합한 pre-trained model 실험 및 선정 |
+| **Reader Model** | Transfer Learning <br> CNN Head <br> Cleaning|
+| **Post-Processing** | 후처리 <br> 모델 다양성 체크 <br> 앙상블 |
+
 
 
 ## 6. 원본 데이터 탐색
