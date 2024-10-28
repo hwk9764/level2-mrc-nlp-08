@@ -146,11 +146,11 @@ tmux attach -t (session_name)
 ![Alt text](./markdownimg/data_column.png)  
 
 **title** : context 제목 <br>
-**context** : 문단
-**question** : 질문
+**context** : 문단 <br>
+**question** : 질문 <br>
 **id** : context, question 쌍 고유 id <br>
-**answers** : {answer_start: 문단 내 시작위치, text: 정답}
-**document_id** : 문단 id
+**answers** : {answer_start: 문단 내 시작위치, text: 정답} <br>
+**document_id** : 문단 id <br>
 
 ### 데이터 분포
 train data의 경우 label 0.0에 데이터가 쏠린 반면 dev data의 경우 비교적 균등하게 데이터가 분포되어있음을 알 수 있다. <br>
