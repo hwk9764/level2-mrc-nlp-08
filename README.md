@@ -145,11 +145,12 @@ tmux attach -t (session_name)
 데이터는 train.csv / dev.csv / test.csv의 3개의 파일로 되어있으며 각 파일의 column은 다음과 같이 구성되어있다. <br>
 ![Alt text](./markdownimg/data_column.png)  
 
-**id** : 문장 고유 id <br>
-**source** : 문장 출처 <br>
-**sentence_1, sentence_2** : 유사성을 비교할 두 문장 <br>
-**label** : 문장 쌍의 유사도. 0~5점 사이 값으로 소수점 첫째 자리까지 표현됨 <br>
-**binary-label** : label 2.5점을 기준으로 0과 1로 변환한 값 <br>
+**title** : context 제목 <br>
+**context** : 문단
+**question** : 질문
+**id** : context, question 쌍 고유 id <br>
+**answers** : {answer_start: 문단 내 시작위치, text: 정답}
+**document_id** : 문단 id
 
 ### 데이터 분포
 train data의 경우 label 0.0에 데이터가 쏠린 반면 dev data의 경우 비교적 균등하게 데이터가 분포되어있음을 알 수 있다. <br>
@@ -298,12 +299,12 @@ Leader Board에서 Pearson을 비교하였을 때 0.105가 올라, 대회에 참
 
 **Public Leader Board 순위**
 
-<img src="./markdownimg/Leader1.png"/>
+<img src="https://github.com/user-attachments/assets/d2d828ff-e443-4a9a-a111-d8e4b8453cc8"/>
 
 
 **Private Leader Board 순위**
 
-<img src="./markdownimg/Leader2.png"/>
+<img src="https://github.com/user-attachments/assets/3c87d052-9734-4c90-8c81-9c186c877bdf"/>
 
 
 # 세션에서 나가기
