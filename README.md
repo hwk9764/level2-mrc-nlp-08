@@ -1,4 +1,4 @@
-🔥 네이버 AI Tech NLP 8조 The AIluminator 🌟
+#🔥 네이버 AI Tech NLP 8조 The AIluminator 🌟
 ## Level 2 Project - Open-Domain Question Answering
 
 ## 목차
