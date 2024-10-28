@@ -3,11 +3,13 @@
 
 ## 목차
 1. [프로젝트 소개](#1-프로젝트-소개)
-2. [Installation and Quick Start](#2-installation-and-quick-start)
-3. [프로젝트 진행](#3-프로젝트-진행)
-4. [최종 결과]()
+2. [프로젝트 구조](#2-프로젝트-구조)
+3. [Installation and Quick Start](#3-installation-and-quick-start)
+4. [팀원 소개](#4-팀원-소개)
+5. [프로젝트 진행](#5-프로젝트-진행)
+6. [리더보드 결과](#6-리더보드-결과)
 
-# 1. 프로젝트 소개
+## 1. 프로젝트 소개
 (1) 주제 및 목표
 - 부스트캠프 AI Tech NLP 트랙 level 2 MRC
 - 주제 : ODQA (Open-Domain Question Answering)    
@@ -29,24 +31,41 @@
 |**Zoom**| - 진행상황 공유 |
 |**WandB**| - Sweep을 통한 하이퍼 파라미터 최적화 |
 
-(5) 팀원 소개
-|김동한|김성훈|김수아|김현욱|송수빈|신수환|
-|:--:|:--:|:--:|:--:|:--:|:--:|
-|<img src="https://github.com/user-attachments/assets/c7d1807e-ef20-4c82-9a88-bc0eb5a700f4" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/62829d6a-13c9-40dd-807a-116347c1de11" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/5933a9e6-b5b8-41df-b050-c0a89ec19607" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/c90f4226-3bea-41d9-8b28-4d6227c1d254" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/65a7e762-b018-41fc-88f0-45d959c0effa" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/8d806852-764d-499b-a780-018b6cf32b8d" width="100" height="100" />|
-<!-- |[Github]()|[Github]()|[Github](https://github.com/tndkkim)|[Github](https://github.com/hwk9764)|[Github](https://github.com/suvinn)|[Github]()| -->
+## 2. 프로젝트 구조
+```sh
+.
+├── model
+│   ├── fine_tune_gnn.py
+│   ├── fine_tune_sts.py
+│   └── SimCSE.py
+├── preprocessing
+│   ├── modeling
+│   │   └── Clustering.ipynb
+│   ├── DataCleaning.ipynb
+│   ├── EDA.ipynb
+│   ├── v1_downsampling.ipynb
+│   ├── v2_augmentation_biassed.ipynb
+│   ├── v3_augmentation_uniform.ipynb
+│   └── v4_augmentation_spellcheck.ipynb
+├── resources
+│   ├── log
+│   └── raw
+│       ├── dev.csv
+│       ├── sample_submission.csv
+│       ├── test.csv
+│       └── train.csv
+├── utils
+│   ├── data_module.py
+│   ├── ensemble_module.py
+│   └── helpers.py
+├── inference.py
+├── run_ensemble.py
+├── train_graph.py
+├── train.py
+├── train_unsup_CL.py
+```
 
-|**Member**|**Team**|**Role**|
-|:--|--|--|
-|**김수아**|Model|**EDA**(label 분포 및 문장 길이 분석), **Data Cleanling**|
-|**김현욱**|Data, Model|- **Generation Reader Modeling**(학습 및 추론)<br>- **EDA**(데이터 텍스트 퀄리티 분석)|
-|**송수빈**|Model|**데이터 증강**(Downsampling/Sentence Swap/BERT-Mask Insertion/hanspell)|
-|**김동한**|Data, Model|- **Extraction Reader Modeling**(학습 및 추론)<br>- **Extraction Reader 아키텍처 수정**(CNN Head)<br>- **Sparse Passage Retrieval**(Retrieval 결과 분석)<br>- **EDA**(데이터 토큰 개수 분포 분석)|
-|**김성훈**|Data, Model|**Model Exploration & Training**, **Modeling**(Second-stream with GNN, Contrastive Learning, Soft Voting Ensemble), **Model Tuning**(deliciouscat/kf-deberta-base-cross-sts, snunlp/KR-ELECTRA-discriminator), **코드 모듈화**|
-|**신수환**|Data, Model|**Model Training & Tuning**(RoBERTa, T5, SBERT), **모델 경량화**(Roberta-large with deepspeed), **Modeling**(Clustering)|
-<br>
-
-
-# 2. Installation and Quick Start
+## Installation and Quick Start
 **Step 1.** 프로젝트에 필요한 모든 dependencies는 `requirements.txt`에 있고, 이에 대한 가상환경을 생성해서 프로젝트를 실행
 ```sh
 # 가상환경 만들기
@@ -173,9 +192,27 @@ $ ensemble_v2.ipynb
 
 ```
 
-# 3. 프로젝트 진행
-<img src="https://github.com/user-attachments/assets/daf4c4ea-2463-426c-9964-939b5c793937"/>
 
+## 4. 팀원 소개
+|김동한|김성훈|김수아|김현욱|송수빈|신수환|
+|:--:|:--:|:--:|:--:|:--:|:--:|
+|<img src="https://github.com/user-attachments/assets/c7d1807e-ef20-4c82-9a88-bc0eb5a700f4" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/62829d6a-13c9-40dd-807a-116347c1de11" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/5933a9e6-b5b8-41df-b050-c0a89ec19607" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/c90f4226-3bea-41d9-8b28-4d6227c1d254" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/65a7e762-b018-41fc-88f0-45d959c0effa" width="100" height="100" />|<img src="https://github.com/user-attachments/assets/8d806852-764d-499b-a780-018b6cf32b8d" width="100" height="100" />|
+<!-- |[Github]()|[Github]()|[Github](https://github.com/tndkkim)|[Github](https://github.com/hwk9764)|[Github](https://github.com/suvinn)|[Github]()| -->
+
+### 맡은 역할
+|**Member**|**Team**|**Role**|
+|:--|--|--|
+|**김수아**|Model|**EDA**(label 분포 및 문장 길이 분석), **Data Cleanling**|
+|**김현욱**|Data, Model|- **Generation Reader Modeling**(학습 및 추론)<br>- **EDA**(데이터 텍스트 퀄리티 분석)|
+|**송수빈**|Model|**데이터 증강**(Downsampling/Sentence Swap/BERT-Mask Insertion/hanspell)|
+|**김동한**|Data, Model|- **Extraction Reader Modeling**(학습 및 추론)<br>- **Extraction Reader 아키텍처 수정**(CNN Head)<br>- **Sparse Passage Retrieval**(Retrieval 결과 분석)<br>- **EDA**(데이터 토큰 개수 분포 분석)|
+|**김성훈**|Data, Model|**Model Exploration & Training**, **Modeling**(Second-stream with GNN, Contrastive Learning, Soft Voting Ensemble), **Model Tuning**(deliciouscat/kf-deberta-base-cross-sts, snunlp/KR-ELECTRA-discriminator), **코드 모듈화**|
+|**신수환**|Data, Model|**Model Training & Tuning**(RoBERTa, T5, SBERT), **모델 경량화**(Roberta-large with deepspeed), **Modeling**(Clustering)|
+<br>
+
+## 5. 프로젝트 진행
+<img src="https://github.com/user-attachments/assets/daf4c4ea-2463-426c-9964-939b5c793937"/>
+framework 설명<br><br>
 
 | Task | **Task Description** |
 | --- | --- |
@@ -186,7 +223,8 @@ $ ensemble_v2.ipynb
 | **Post-Processing** | 후처리 <br> 모델 다양성 체크 <br> 앙상블 |
 
 
-## EDA
+## 6. 원본 데이터 탐색
+### 사용한 데이터셋
 데이터는 train_dataset, test_dataset의 2개의 DatasetDict로 되어있으며 각 파일의 구성은 다음과 같다. <br>
 | 분류(디렉토리 명)|세부 분류|샘플 수|용도|공개여부|
 |:-:|:-:|:-:|:-:|:-:|
@@ -224,7 +262,7 @@ $ ensemble_v2.ipynb
 - 각 데이터셋에서 한글이 아닌 문자(영어, 한자, url, html 태그, 특수문자 등) 개수 파악, text에 한번이라도 포함되면 count <br>
 <img src="https://github.com/user-attachments/assets/27ff50e7-5bc5-495c-8f4f-b2947a39e14c"/>
 
-## 베이스라인 모델
+## 7. Modeling
 ### Model Exploration
 - 베이스라인으로 주어진 코드를 기반으로 HuggingFace의 model 허브에서 “question answering”으로 필터링한 후 Klue로 사전학습 되지 않은 모델에 대해 기초 성능 평가를 진행. <br>
 Reader : Query-Passage 쌍 데이터로 학습 한 Extraction based Reader
@@ -240,6 +278,89 @@ Parameter Tuning <br>
 - 과적합을 방지하기 위해 Loss function에 L2 penalty를 좀 더 많이 적용
 - 적절한 답변의 길이를 찾기
 <img src="https://github.com/user-attachments/assets/ead0a1f5-0945-4a4b-a361-6c6e626ca63f"/>
+
+## Retrieval 개선
+### Sparse Passage Retrieval
+- **BM25 사용**
+    - BM25는 문서와 쿼리 간의 관련성을 측정하는 통계적 모델
+    - TF-IDF(역문헌빈도) 개념을 기반으로 하며, 아래 3가지 조건을 만족할수록 더 큰 점수 부여
+      1. 문서 내용에 단어 출현 빈도가 높을수록
+         - f(t, d) : 문서 d에서 단어 t가 등장한 횟수
+         - k : saturation parameter, 단어 t 출현 수(f)가 한계치에 도달하면 더 이상 출현 수로 인한 점수 부여는 하지 않기 위한 파라미터
+      2. 문서 내용이 짧을수록
+      3. 다른 문서에는 단어가 출현하지 않을수록 (IDF 계산하는 것, 단어가 제공하는 정보의 양)
+         - df : 단어 t가 출현한 문서 수
+  <img src="https://github.com/user-attachments/assets/3fb779d2-9c2d-4c44-ad7c-1c8d5174d552"/>
+
+- **BM25 성능 고도화**
+  - **가설 설정**
+    - BM25는 "키워드"의 출현 빈도가 점수 계산에 큰 영향을 끼치므로 문장에서 "키워드"를 어떻게 추출하느냐에 따라 성능에 달라질 것으로 판단
+  - **문제 해결 과정**
+    - Subword-Level Tokenization(BPE, WordPiece 등)을 이용하여 문장을 토큰으로 나누어 "키워드" 추출
+    - 한국어의 어휘와 문법적인 요소를 반영하여 "키워드"를 추출하기 위해 한국어 형태소 분석기 활용
+    - 한국어 형태소 분석기는 벤치마크 실험 결과1)에 따라 OKT (Open Korean Text) 형태소 분석기를 사용
+    - 문장을 형태소로 나누었을 때 "키워드"를 담고 있다고 생각되는 형태소만을 남김
+   
+  -  형태소 분류표
+  
+    | 대분류       | 형태소  | 설명      |
+    |--------------|---------|-----------|
+    | 체언 (N)     | NNG     | 일반 명사 |
+    |              | NNP     | 고유 명사 |
+    |              | NNB     | 의존 명사 |
+    |              | NR      | 수사      |
+    |              | NP      | 대명사    |
+
+    | 대분류       | 형태소  | 설명      |
+    |--------------|---------|-----------|
+    | 용언 (V)     | VV      | 동사      |
+    |              | VA      | 형용사    |
+    
+    | 대분류       | 형태소  | 설명      |
+    |--------------|---------|-----------|
+    | 어근         | XR      | 어근      |
+    | 부호         | SN      | 숫자      |
+    |              | SH      | 한자      |
+    |              | SL      | 알파벳    |
+
+  
+### Dense Passage Retrieval
+- **DPR 사용**
+    - Facebook AI에서 개발한 모델로, 문서와 질문을 밀집 벡터(Dense Vector)로 변환한 후, 이 벡터 간의 유사도를 계산해 관련 문서를 찾는 모델
+    - BM25의 다음과 같은 한계를 보완하기 위해 DPR 모델을 활용
+        - 단어 기반 매칭 : 쿼리와 문서 간의 일치 여부는 단어가 정확히 일치해야 유사도가 높게 계산되어 동의어 또는 의미상으로 유사한 단어를 처리하는 데 한계가 존재
+        - 문맥 정보 부족 : 개별 단어의 빈도와 희소성(Sparse)에 기반하여 점수를 계산하기 때문에, 단어가 문장에서 사용된 의미나 뉘앙스를 잘 반영하지 못함
+    - **Model Architecture**
+        - Question (query)에 대응되는 Encoder 1
+        - Wiki. Document (passage)에 대응되는  Encoder 2
+        - 각 sentence를 encoding 했을 때 `[cls]` 토큰에 해당하는 vector 𝒉
+        - 각 Encoder의 𝒉 를 dot-product 하여 유사도 계산
+      <img src="https://github.com/user-attachments/assets/5889a0d9-c116-4c8c-9d1d-aabd0f355a89"/>
+
+
+- **DPR 학습과정**
+    - **학습 목표**
+        - 연관된 question 과 passage dense embedding 간의 거리를 좁히는 것
+    - **학습 데이터 구축**
+        - 학습을 위해서는 대회에서 제공된 데이터셋과 같은 연관성이 높은 question-passage 쌍 필요
+            - Training set : 대회 학습 데이터(3,952개) + KoQuAD 1.0 학습 데이터 (60,407개)
+            - Validation set : 대회 검증 데이터(240개)
+   - **Object Function**
+       - 어떠한 질문 $𝑞_𝑖$ ​, 이와 관련된(=positive) 지문  $𝑝_𝑖^+$  , 관련이 없는(=negative) n개의 지문  $𝑝_(𝑖,𝑗)^−$  로 이루어져 있음
+       -  NLL (Negative Log-Likelihood) Loss를 사용해서 최적화
+
+          $$L(q_i, p_i^+, p_{i,1}^-, \dots, p_{i,n}^-) = -\log \frac{e^{sim(q_i, p_i^+)}}{e^{sim(q_i, p_i^+)} + \sum_{j=1}^{n} e^{sim(q_i, p_{i,j}^-)}} $$
+   - **Hard negative passages**
+     - 가장 높은 BM25 점수를 지니는 n개의 passage를 negative passage로 사용
+   - **In-batch negatives**
+     - mini-batch를 1개는 positive, n개는 negative로 구성
+     - Batch Size가 3일 때, 두 encoder의 embedding으로 (3 x 768) * (768 x 3) = (3 x 3)의 similarity matrix를 만들 수 있음
+     - 주대각선이 서로 대응하는 질문과 텍스트의 유사도에 해당
+      <img src="https://github.com/user-attachments/assets/96ca9aa3-9398-42d5-a2df-7ee8ce798974"/>
+
+### 평가
+<img src="https://github.com/user-attachments/assets/97a1e58c-09da-4f96-9f1a-b33384078158"/>
+
 
 ## Reader 개선
 ### Transfer Learning
@@ -272,9 +393,8 @@ Parameter Tuning <br>
     → 이 중 Curriculum Learning에 반영할 난이도를 생각했을 때, 추론형이 더 학습하기 어려운 데이터이므로 추론형을 선택하여 전이 학습에 사용
 
 - **평가**
-    - 증강된 데이터를 활용하였을 때, validation에서는 크게 개선되지 않았지만, **F1-score와 Public Score가 많이 향상된 것을 확인**
-
-    <img src="https://github.com/user-attachments/assets/197ea107-b49b-45e7-b0ff-aab25ae0dff6"/>
+    - 증강된 데이터를 활용하였을 때, validation에서는 크게 개선되지 않았지만, **F1-score와 Public Score가 많이 향상된 것을 확인** <br>
+<img src="https://github.com/user-attachments/assets/197ea107-b49b-45e7-b0ff-aab25ae0dff6"/>
 
 ### CNN Layer
 - **배경**
@@ -282,20 +402,17 @@ Parameter Tuning <br>
     - 삼성 SDS에서 제안한 KorQuAD 1.0 성능 개선 방안1) 에 따르면, 1D Convolution을 추가하면 Kernel Size에 해당하는 인접 토큰들의 임베딩 벡터 간의 연관성을 학습하여 보다 풍부한 문맥 정보를 얻을 수 있다는 것을 확인
 - **1차원 Convolution**
     - 1D Convolution은 2D Convolution 와 달리 커널의 높이가 임베딩 차원과 같고, 너비만 kernel size로 설정
-    - 결과적으로, 시퀀스의 각 위치에서 해당 범위 내 단어들의 정보를 종합한 특징 벡터가 생성
-
+    - 결과적으로, 시퀀스의 각 위치에서 해당 범위 내 단어들의 정보를 종합한 특징 벡터가 생성 <br>
       <img src="https://github.com/user-attachments/assets/2d0dc473-19c9-49d3-99eb-a107ed14e974"/> 
 - **CNN Layer 적용 구조**
-    - Kernel Size 3과 1을 갖는 Conv 레이어와 Residual Connection을 통해 인접 토큰 간의 연관성 학습과 동시에 모델이 깊어짐에 따른 학습 부담을 완화
-
+    - Kernel Size 3과 1을 갖는 Conv 레이어와 Residual Connection을 통해 인접 토큰 간의 연관성 학습과 동시에 모델이 깊어짐에 따른 학습 부담을 완화 <br>
       <img src="https://github.com/user-attachments/assets/d7016bf4-fc64-48a0-8432-c88a184995d5"/>
 - **평가**
     - kpfbert-korquad-1 : Eval_F1 : 4.66 , Eval_EM : 5.00 상승
     - roberta-large-qa-korquad-v1: Eval_F1 : 2.84 , Eval_EM : 2.9 상승, Public_EM : 7.08, public_F1 : 7.5 감소 
     
-    → 학습 성능이 높아졌지만 오버피팅 가능성이 높아짐을 확인
-
-    <img src="https://github.com/user-attachments/assets/fdf81d6e-0bd4-4077-8fc6-cb36f77c15e9"/>
+    → 학습 성능이 높아졌지만 오버피팅 가능성이 높아짐을 확인 <br>
+<img src="https://github.com/user-attachments/assets/fdf81d6e-0bd4-4077-8fc6-cb36f77c15e9"/>
 
 ### Cleaning
 - **배경**
@@ -326,10 +443,51 @@ Parameter Tuning <br>
         - 이외에 Answer 형식을 통일하려고 시도하였으나, 규칙성을 찾아내지 못하였음
 
 - **평가**
-    - Clean 되기 이전의 데이터를 사용했을 때에 비해 Clean 데이터를 사용하였을 때 모델의 성능이 전반적으로 오른다는 것을 확인
-    - Data Aaugmentation 진행한 결과에 따른 4가지 version의 train data와 Model exploration&Modeling을 거쳐 선정된 model에 다양한 조합으로 실험하여 최적의 성능 도출
-    - **각 기법마다 best case에 대해서 비교해본 결과 min-max 평균을 취한 case가 가장 높은 92.98의 public pearson 값을 가지는 것을 확인하고 이를 최종 리더보드에 제출**
-
+    - Clean 되기 이전의 데이터를 사용했을 때에 비해 Clean 데이터를 사용하였을 때 모델의 성능이 전반적으로 오른다는 것을 확인 <br>
     <img src="https://github.com/user-attachments/assets/ab4f25b9-5571-477e-9aed-bf0234154905"/>
 
+## Post-Processing
+### Inference 후처리
+- 통합모델이 최선의 답을 도출할 때, 문서 내에 다른 위치에 있는 같은 단어임에도 start logit과 end logit 값이 달라 각 위치에 대한 확률이 분리되어 계산되는 현상이 발생하여 Inference 후처리 진행
+- 텍스트가 동일한 경우 확률을 합산해 총 확률을 기반으로 답변을 선택하는 후처리 과정을 적용함
+<br>
+
+### 모델 다양성 체크
+- 모델의 예측값을 벡터로 치환하여(오답을 1, 정답을 0) **모델 간의 상관관계**를 분석함으로써, 모델들이 상호보완적인 작용을 하도록 함
+- model1, model2이 있고 각각 5개를 예측했다고 하면 두 벡터 [1, 0, 0, 1, 1], [0, 1, 1, 0, 1]의 상관관계를 도출
+
+### 앙상블
+- 다양하게 훈련된 여러 모델을 결합하여 모델들이 서로를 보완하여 더 좋은 결과를 낼 수 있도록 하기 위해 앙상블을 도입
+- 확률합을 통해 soft voting (앞서 이야기 한 후처리 방식과 동일)
+    - 앙상블 할 모델들의 답변-확률 값을 불러오고 같은 단어에 대한 확률들을 sum
+    - 가장 높은 확률의 답변을 정답으로 채택
+
+- 다수결 (majority voting)
+    - 앙상블 할 모델들의 답변-확률 값을 불러오고 가장 빈도수가 높은 답변을 정답으로 채택
+    - 만약 동률의 답변이 있다면, 앞선 다수결 결과와 상관없이 확률이 가장 높은 답변을 채택
+<br>
+
+**결과 분석**
+- Data Aaugmentation 진행한 결과에 따른 4가지 version의 train data와 Model exploration&Modeling을 거쳐 선정된 model에 다양한 조합으로 실험하여 최적의 성능 도출
+- **각 기법마다 best case에 대해서 비교해본 결과 min-max 평균을 취한 case가 가장 높은 92.98의 public pearson 값을 가지는 것을 확인하고 이를 최종 리더보드에 제출**
+
+| 모델 | 활용 기법 | Validation Pearson | Min-Max 정규화 가중 평균 |
+| --- | --- | --- | --- |
+| deliciouscat/kf-deberta-base-cross-sts | raw + Contrastive Learning | 0.930 | 1.111 |
+| deliciouscat/kf-deberta-base-cross-sts | raw + Cleaning | 0.930 | 1.111 |
+| sorryhyun/sentence-embedding-klue-large | Augmentation v2 | 0.923 | 0.800 |
+| snunlp/KR-ELECTRA-discriminator | Augmentation v2 | 0.932 | 1.200 |
+| snunlp/KR-ELECTRA-discriminator | Augmentation v3 | 0.930 | 1.111 |
+
+## 6. 리더보드 결과
+Leader Board에서 Pearson을 비교하였을 때 0.105가 올라, 대회에 참여한 16팀 중 가장 많이 순위가 상승하였고 최종 4위를 기록함
+
+**Public Leader Board 순위**
+
+<img src="https://github.com/user-attachments/assets/d2d828ff-e443-4a9a-a111-d8e4b8453cc8"/>
+
+
+**Private Leader Board 순위**
+
+<img src="https://github.com/user-attachments/assets/3c87d052-9734-4c90-8c81-9c186c877bdf"/>
 
