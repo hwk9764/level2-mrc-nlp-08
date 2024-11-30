@@ -38,7 +38,7 @@
 |**Member**|**Team**|**Role**|
 |:--|--|--|
 |**김동한**|Data, Model|- **Extraction Reader Modeling**(학습 및 추론)<br>- **Extraction Reader 아키텍처 수정**(CNN Head)<br>- **Sparse Passage Retrieval**(Retrieval 결과 분석)<br>- **EDA**(데이터 토큰 개수 분포 분석)|
-|**김성훈**|Data, Model|- **Code Modularization**, **Sparse/Dense Passage Rrieval**(구현 및 실험), **Generation Reader Modeling**(LLM 학습 및 실험), **ML Pipeline**|
+|**김성훈**|Data, Model|- **Code Modularization**<br>- **Sparse/Dense Passage Rrieval**(구현 및 실험)<br>- **Generation Reader Modeling**(LLM 학습 및 실험)<br>- **ML Pipeline**|
 |**김수아**|Model|- **Question augmentation**(KoBART)<br>- **Experimentation**(top-k)|
 |**김현욱**|Data, Model|- **Generation Reader Modeling**(학습 및 추론)<br>- **EDA**(데이터 텍스트 퀄리티 분석)|
 |**송수빈**|Model|- **Extraction Reader Modeling**(학습 및 추론)<br>- **Experimentation**(실험 모델 목록 구성 및 결과 정리)<br>- **Logging & HyperParameter Tuning**(Wandb Sweep)<br>- **Ensemble**(앙상블 코드 작성, 모델 선정을 위한 상관관계 분석 코드 작성)|
