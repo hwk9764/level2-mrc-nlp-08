@@ -31,11 +31,13 @@ class BM25Reranker(object):
             pickle.dump(model, file)
             
     def _tokenize(self, text):
+        # 형태소 선별 -> subword-level tokenize 한 코드
         # tokenized_text = [self.tokenizer.tokenize(txt) for txt in text]
         tokenized_text = []
         for txt in text:
             try:
                 morph_question = kiwi.tokenize(txt)
+                # 특정 tag만 남김
                 morph_question_form = [x.form for x in morph_question if x.tag in ["NNG", "NNP","NNB","NR","NP","SN","SH","SL","VV","VA","XR"]]
                 morph_question_form_hf = []
                 for x in morph_question_form:
